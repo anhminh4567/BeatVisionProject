@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,8 +18,10 @@ namespace Shared.Models
         public CustomIdentityUser IdentityUser { get; set; } = null!;// Required reference navigation to principal
         public string? Description { get; set; }
         public string Fullname { get; set; }
+        public string? ProfileBlobPath { get; set; }
         public DateTime? Birthday { get; set; }
-        public AcccountStatus AccountStatus { get; set; }
+		[Column(TypeName = "nvarchar(30)")]
+		public AcccountStatus AccountStatus { get; set; }
         public string? Caption { get; set; }
         public int TotalTrack { get; set; }
         public int TotalAlbumn { get; set; }
@@ -33,9 +36,9 @@ namespace Shared.Models
         public IList<CartItem> CartItems { get; set; } = new List<CartItem>();
         public IList<UserProfile> Followers { get; set; } = new List<UserProfile>();
         public IList<UserProfile> Followings { get; set; } = new List<UserProfile>();
-
-        public IList<Notification> Notifications { get; set; } = new List<Notification>();
-        public IList<Message> CreatedMessage { get; set; } = new List<Message>(); 
+	
+		public IList<Notification> Notifications { get; set; } = new List<Notification>();
+		public IList<Message> CreatedMessage { get; set; } = new List<Message>(); 
 
 
 	}

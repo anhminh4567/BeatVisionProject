@@ -12,11 +12,12 @@ namespace Shared.Models
 		public string MessageName { get; set; }
 		public string Content { get; set; }
 		public DateTime CreatedDate { get; set; } = DateTime.Now;
+		[Column(TypeName = "nvarchar(30)")]
 		public NotificationType Type { get; set; } 
 		public int CreatorId { get; set; } = -1;// -1 means server generated
 		public UserProfile Creator { get; set; }
 		public bool IsServerNotification { get; set; } = true;
 		public IList<Notification> Notifications { get; set; }
-		public IList<UserProfile> Receivers { get; set; }
+		//public IList<UserProfile> Receivers { get; set; }
 	}
 }

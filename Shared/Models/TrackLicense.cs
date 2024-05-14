@@ -17,5 +17,6 @@ namespace Shared.Models
 		public int StreamLimit { get; set; }
 		public bool IsProducerTagged { get; set; }
 		public string LicensePdfBlobPath { get; set; }
+		public IList<Track> TracksRelated { get; set; } = new List<Track>();
 	}
 }

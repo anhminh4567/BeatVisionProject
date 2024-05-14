@@ -7,8 +7,8 @@ namespace Shared.Models
 	public class Notification
 	{
 
-		public int? SenderId { get; set; }
-		public UserProfile? Sender { get; set; }
+		public int? ReceiverId { get; set; }
+		public UserProfile? Receiver { get; set; }
 		public int? MessageId { get; set; }
 		public Message? Message { get; set; }
 		public bool IsImportant { get; set; } = false;

@@ -22,4 +22,8 @@ namespace Shared.Enums
 	{
 		ALL,GROUP,SINGLE
 	}
+	public enum CommentType
+	{
+		TRACK,ALBUM
+	}
 }
