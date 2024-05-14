@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Identity;
 using Azure.Storage.Blobs;
 using StackExchange.Redis;
 using Microsoft.Extensions.Caching.Distributed;
+using Quartz;
+using Services.BackgroundServices;
 namespace Services
 {
     public static class RegisterDependency
@@ -88,9 +90,32 @@ namespace Services
                 var connectionString = appsettingBinding.ConnectionStrings.CacheConnectionString; 
                 opt.Configuration = connectionString;
             });
+            services.AddBackgroundServices(appsettingBinding);
 			//services.AddSingleton<IConnectionMultiplexer>(factory => ConnectionMultiplexer.Connect(appsettingBinding.ConnectionStrings.CacheConnectionString));
    //         services.AddSingleton<ICacheService,RedisCacheService>();
 			return services;
         }
-    }
+		private static IServiceCollection AddBackgroundServices(this IServiceCollection services, AppsettingBinding appsettingBinding)
+        {
+            services.AddQuartz(options =>
+            {
+                var demoJobKey = nameof(QuartzDemoServices);
+				options.UseMicrosoftDependencyInjectionJobFactory();
+                options
+                    .AddJob<QuartzDemoServices>(JobKey.Create(demoJobKey), config => { })
+                    .AddTrigger(trigger => trigger
+                        .ForJob(demoJobKey)
+                        .WithSimpleSchedule(schedule =>
+                        {
+                            schedule.WithIntervalInSeconds(5).RepeatForever();
+                        }));
+            });
+            services.AddQuartzHostedService(options =>
+            {
+                options.WaitForJobsToComplete = false;
+            });
+            return services;
+        }
+
+	}
 }
