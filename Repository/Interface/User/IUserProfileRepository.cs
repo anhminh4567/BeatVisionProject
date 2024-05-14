@@ -7,7 +7,5 @@ using System.Threading.Tasks;
 
 namespace Repository.Interface.User
 {
-    public interface IUserProfileRepository : IRepositoryBase<UserProfile>
-    {
-    }
+
 }

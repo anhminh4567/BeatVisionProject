@@ -1,4 +1,5 @@
 ﻿using Repository.Interface.User;
+using Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,6 @@ namespace Repository.Interface
         //Identity
         //Identity
 
-        IUserProfileRepository userProfileRepository { get; set; }
+        IRepositoryBase<UserProfile> userProfileRepository { get; set; }
     }
 }

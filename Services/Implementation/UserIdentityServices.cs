@@ -6,9 +6,9 @@ using Repository.Interface;
 using Services.Interface;
 using Shared;
 using Shared.ConfigurationBinding;
+using Shared.Enums;
 using Shared.Helper;
 using Shared.IdentityConfiguration;
-using Shared.Models;
 using Shared.Poco;
 using Shared.RequestDto;
 using Shared.ResponseDto;
@@ -69,7 +69,7 @@ namespace Services.Implementation
             if (registerResult.Succeeded)
             {
                 var getUser = await UserManager.FindByEmailAsync(newUser.Email);
-                await UserManager.AddToRoleAsync(getUser, Roles.User.ToString());
+                await UserManager.AddToRoleAsync(getUser, RolesEnum.User.ToString());
                 var generateTokenResult = await GenerateTokensForUsers(getUser);
                 if (generateTokenResult.isSuccess is false)
                 {

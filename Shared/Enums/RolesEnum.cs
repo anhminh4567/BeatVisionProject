@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared.Models
+namespace Shared.Enums
 {
-    public enum Roles
+    public enum RolesEnum
     {
-        User,Admin,Staff
+        User, Admin, Staff
     }
 }

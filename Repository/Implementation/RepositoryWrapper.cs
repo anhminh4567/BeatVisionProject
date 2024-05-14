@@ -1,5 +1,6 @@
 ﻿using Repository.Interface;
 using Repository.Interface.User;
+using Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Repository.Implementation
 {
     public class RepositoryWrapper : IRepositoryWrapper
     {
-        public RepositoryWrapper(ICustomIdentityUserRepository customIdentityUser, ICustomIdentityUserLoginsRepository customIdentityUserLogins, ICustomIdentityUserClaimsRepository customIdentityUserClaims, ICustomIdentityUserTokenRepository customIdentityUserToken, ICustomIdentityRoleRepository customIdentityRole, ICustomIdentityRoleClaimRepository customIdentityRoleClaim, ICustomIdentityUserRoleRepository customIdentityUserRole, IUserProfileRepository userProfileRepository)
+        public RepositoryWrapper(ICustomIdentityUserRepository customIdentityUser, ICustomIdentityUserLoginsRepository customIdentityUserLogins, ICustomIdentityUserClaimsRepository customIdentityUserClaims, ICustomIdentityUserTokenRepository customIdentityUserToken, ICustomIdentityRoleRepository customIdentityRole, ICustomIdentityRoleClaimRepository customIdentityRoleClaim, ICustomIdentityUserRoleRepository customIdentityUserRole, IRepositoryBase<UserProfile> userProfileRepository)
         {
             this.customIdentityUser = customIdentityUser;
             this.customIdentityUserLogins = customIdentityUserLogins;
@@ -36,6 +37,6 @@ namespace Repository.Implementation
 
         public ICustomIdentityUserRoleRepository customIdentityUserRole { get; set; }
 
-        public IUserProfileRepository userProfileRepository { get; set; }
+        public IRepositoryBase<UserProfile> userProfileRepository { get; set; }
     }
 }

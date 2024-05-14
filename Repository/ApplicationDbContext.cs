@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Shared.IdentityConfiguration;
+using Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,9 +58,9 @@ namespace Repository
             //Application Configuration
             builder.Entity<UserProfile>(e =>
             {
-                e.HasOne(u => u.User)
+                e.HasOne(u => u.IdentityUser)
                 .WithOne(u => u.UserProfile)
-                .HasForeignKey<UserProfile>(u => u.UserId)
+                .HasForeignKey<UserProfile>(u => u.IdentityId)
                 .OnDelete(DeleteBehavior.Cascade);
             });
         }

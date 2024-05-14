@@ -13,6 +13,7 @@ using Repository.Interface;
 using Repository.Implementation;
 using Shared.IdentityConfiguration;
 using Microsoft.AspNetCore.Identity;
+using Shared.Models;
 
 namespace Repository
 {
@@ -33,7 +34,7 @@ namespace Repository
                 .AddUserManager<UserManager<CustomIdentityUser>>()
                 .AddDefaultTokenProviders();
 
-            services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+            services.AddScoped<IRepositoryBase<UserProfile>, UserProfileRepository>();
 
             services.AddScoped<ICustomIdentityUserRepository, CustomIdentityUserRepository>();
             services.AddScoped<ICustomIdentityUserTokenRepository, CustomIdentityUserTokenRepository>();
