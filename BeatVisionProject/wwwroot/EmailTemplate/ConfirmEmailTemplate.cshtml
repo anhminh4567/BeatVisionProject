@@ -1,0 +1,27 @@
+﻿@using System.Text;
+@model Shared.Poco.ConfirmEmailModel
+@{
+	StringBuilder completeCallback = new StringBuilder("");
+	completeCallback.Append(Model.CallbackUrl);
+	completeCallback.Append("?userId=");
+	completeCallback.Append(Model.UserId);
+	completeCallback.Append("&");
+	completeCallback.Append("token=");
+	completeCallback.Append(Model.ConfirmationToken);
+	var absoluteCallback = completeCallback.ToString();
+}
+<h3>ConfirmEmailTemplate</h3>
+<body>
+	<h1 style="background-color:black; color:white"> This is send from gmail smtp server, 
+		<strong>not from local </strong>, 
+		learn more to send from local  </h1>
+	<a href="@absoluteCallback">this is the callback link to confirm email of yours</a>
+	<div style="background-color:white; color:black">
+		@{
+			for (int i = 0; i < 5; i++)
+			{
+				<div>@i</div>
+			}
+		}
+	</div>
+</body>
