@@ -23,19 +23,22 @@ namespace Repository.Implementation
 
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
         {
-             _currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
-        }
+			if (_currentTransaction is not null)
+				_currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+		}
 
         public async Task CommitAsync(CancellationToken cancellationToken = default)
         {
             if (_currentTransaction is not null)
                 await _currentTransaction.CommitAsync(cancellationToken);
-        }
+			_currentTransaction = null;
+		}
 
         public async Task RollBackAsync(CancellationToken cancellationToken = default)
         {
             if (_currentTransaction is not null)
                 await _currentTransaction.RollbackAsync(cancellationToken);
+            _currentTransaction = null;
         }
 
         public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
