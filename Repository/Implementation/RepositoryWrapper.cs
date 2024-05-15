@@ -37,6 +37,20 @@ namespace Repository.Implementation
 
         public ICustomIdentityUserRoleRepository customIdentityUserRole { get; set; }
 
-        public IRepositoryBase<UserProfile> userProfileRepository { get; set; }
-    }
+		//public IRepositoryBase<UserProfile> userProfileRepository { get; set; }
+
+		public IRepositoryBase<UserProfile> userProfileRepository { get; set; }
+		public IRepositoryBase<Notification> notificationRepository { get; set; }
+		public IRepositoryBase<Message> messageRepository { get; set; }
+		public IRepositoryBase<CartItem> cartItemRepository { get; set; }
+		public IRepositoryBase<Comment> commentRepository { get; set; }
+		public IRepositoryBase<TrackComment> trackCommentRepository { get; set; }
+		public IRepositoryBase<AlbumComment> albumCommentRepository { get; set; }
+		public IRepositoryBase<Track> trackRepository { get; set; }
+		public IRepositoryBase<TrackLicense> trackLicenseRepository { get; set; }
+		public IRepositoryBase<Album> albumRepository { get; set; }
+		public IRepositoryBase<PlayList> playListRepository { get; set; }
+		public IRepositoryBase<Tag> tagRepository { get; set; }
+		public IRepositoryBase<BlobFileData> blobFileDataRepository { get; set; }
+	}
 }

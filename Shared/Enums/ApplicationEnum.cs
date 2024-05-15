@@ -26,4 +26,5 @@ namespace Shared.Enums
 	{
 		TRACK,ALBUM
 	}
+	
 }

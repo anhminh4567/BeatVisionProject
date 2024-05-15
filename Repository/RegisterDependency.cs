@@ -14,6 +14,8 @@ using Repository.Implementation;
 using Shared.IdentityConfiguration;
 using Microsoft.AspNetCore.Identity;
 using Shared.Models;
+using System.Reflection;
+using Shared.MapperProfiles;
 
 namespace Repository
 {
@@ -34,8 +36,8 @@ namespace Repository
                 .AddUserManager<UserManager<CustomIdentityUser>>()
                 .AddDefaultTokenProviders();
 
-            services.AddScoped<IRepositoryBase<UserProfile>, UserProfileRepository>();
-
+            
+            
             services.AddScoped<ICustomIdentityUserRepository, CustomIdentityUserRepository>();
             services.AddScoped<ICustomIdentityUserTokenRepository, CustomIdentityUserTokenRepository>();
             services.AddScoped<ICustomIdentityUserLoginsRepository, CustomIdentityUserLoginsRepository>();
@@ -44,7 +46,23 @@ namespace Repository
             services.AddScoped<ICustomIdentityUserRoleRepository, CustomIdentityUserRoleRepository>();
             services.AddScoped<ICustomIdentityRoleClaimRepository, CustomIdentityRoleClaimRepository>();
 
-            services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+			services.AddScoped<IRepositoryBase<UserProfile>, UserProfileRepository>();
+
+			services.AddScoped<IRepositoryBase<Notification>, RepositoryBase<Notification>>();
+			services.AddScoped<IRepositoryBase<Message>, RepositoryBase<Message>>();
+			services.AddScoped<IRepositoryBase<CartItem>, RepositoryBase<CartItem>>();
+			services.AddScoped<IRepositoryBase<Comment>, RepositoryBase<Comment>>();
+			services.AddScoped<IRepositoryBase<TrackComment>, RepositoryBase<TrackComment>>();
+			services.AddScoped<IRepositoryBase<AlbumComment>, RepositoryBase<AlbumComment>>();
+			services.AddScoped<IRepositoryBase<Track>, RepositoryBase<Track>>();
+			services.AddScoped<IRepositoryBase<TrackLicense>, RepositoryBase<TrackLicense>>();
+			services.AddScoped<IRepositoryBase<Album>, RepositoryBase<Album>>();
+			services.AddScoped<IRepositoryBase<PlayList>, RepositoryBase<PlayList>>();
+			services.AddScoped<IRepositoryBase<Tag>, RepositoryBase<Tag>>();
+			services.AddScoped<IRepositoryBase<BlobFileData>, RepositoryBase<BlobFileData>>();
+
+
+			services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             services.Configure<IdentityOptions>(options =>
@@ -62,6 +80,7 @@ namespace Repository
                 tokenOpt.ChangeEmailTokenProvider = TokenOptions.DefaultEmailProvider;
                 tokenOpt.PasswordResetTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
             });
+            services.AddAutoMapper(Assembly.GetAssembly(typeof(Profiles)));
             return services;
         }
     }

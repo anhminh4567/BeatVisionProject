@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Shared.Enums
+namespace Services.Implementation
 {
-	public enum BlobDirectoryType
+	public class ManageUserService
 	{
-		Public,PaidContent,Private,Test
+
 	}
 }

@@ -94,7 +94,7 @@ namespace Services.Implementation
 			BlobContainerClient blobContainerClient;// = _blobServiceClient.GetBlobContainerClient(PublicBlob);
 			switch (blobDirectoryType)
 			{
-				case BlobDirectoryType.Pulbic:
+				case BlobDirectoryType.Public:
 					blobContainerClient = _blobServiceClient.GetBlobContainerClient(PublicBlob);
 					break;
 				case BlobDirectoryType.PaidContent:

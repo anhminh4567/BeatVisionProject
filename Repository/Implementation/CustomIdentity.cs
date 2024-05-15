@@ -17,44 +17,50 @@ using System.Threading.Tasks;
 namespace Repository.Implementation
 {
 
-    public class CustomIdentityUserRepository : CachingRepositoryBase<CustomIdentityUser>, ICustomIdentityUserRepository
-    {
-        public CustomIdentityUserRepository(ApplicationDbContext context, IDistributedCache distributedCache) : base(context, distributedCache)
-        {
-        }
+	//   public class CustomIdentityUserRepository : CachingRepositoryBase<CustomIdentityUser>, ICustomIdentityUserRepository
+	//   {
+	//       public CustomIdentityUserRepository(ApplicationDbContext context, IDistributedCache distributedCache) : base(context, distributedCache)
+	//       {
+	//       }
 
-		public override async Task<CustomIdentityUser> Create(CustomIdentityUser entity)
-		{
-			var creatResult = await base.Create(entity);
-            if (creatResult is null)
-                return creatResult;
-            var cacheKey = _cacheKey + creatResult.Id;
-            _cacheDb.Set(cacheKey,JsonSerializer.SerializeToUtf8Bytes(creatResult),DistributeCacheOptionFactory.CreateRandomTime());
-            return creatResult;
-        }
+	//	public override async Task<CustomIdentityUser> Create(CustomIdentityUser entity)
+	//	{
+	//		var creatResult = await base.Create(entity);
+	//           if (creatResult is null)
+	//               return creatResult;
+	//           var cacheKey = _cacheKey + creatResult.Id;
+	//           _cacheDb.Set(cacheKey,JsonSerializer.SerializeToUtf8Bytes(creatResult),DistributeCacheOptionFactory.CreateRandomTime());
+	//           return creatResult;
+	//       }
 
-		public override async Task<CustomIdentityUser> Delete(CustomIdentityUser entity)
-		{
-			var result = await base.Delete(entity);
-            if (result is null)
-                return result;
-            var entityCacheKey = _cacheKey + entity.Id;
-            _cacheDb.Remove(entityCacheKey);
-            return result;
-		}
+	//	public override async Task<CustomIdentityUser> Delete(CustomIdentityUser entity)
+	//	{
+	//		var result = await base.Delete(entity);
+	//           if (result is null)
+	//               return result;
+	//           var entityCacheKey = _cacheKey + entity.Id;
+	//           _cacheDb.Remove(entityCacheKey);
+	//           return result;
+	//	}
 
-		public override async Task<CustomIdentityUser> Update(CustomIdentityUser entity)
+	//	public override async Task<CustomIdentityUser> Update(CustomIdentityUser entity)
+	//	{
+	//		var updatedResult = await base.Update(entity);
+	//           if (updatedResult is null)
+	//               return updatedResult;
+	//		var entityCacheKey = _cacheKey + entity.Id;
+	//           _cacheDb.Remove(entityCacheKey);
+	//           _cacheDb.Set(entityCacheKey, JsonSerializer.SerializeToUtf8Bytes(updatedResult), DistributeCacheOptionFactory.CreateRandomTime());
+	//           return updatedResult;
+	//	}
+	//}
+	public class CustomIdentityUserRepository : RepositoryBase<CustomIdentityUser>, ICustomIdentityUserRepository
+	{
+		public CustomIdentityUserRepository(ApplicationDbContext context) : base(context)
 		{
-			var updatedResult = await base.Update(entity);
-            if (updatedResult is null)
-                return updatedResult;
-			var entityCacheKey = _cacheKey + entity.Id;
-            _cacheDb.Remove(entityCacheKey);
-            _cacheDb.Set(entityCacheKey, JsonSerializer.SerializeToUtf8Bytes(updatedResult), DistributeCacheOptionFactory.CreateRandomTime());
-            return updatedResult;
 		}
 	}
-    public class CustomIdentityUserLoginsRepository : RepositoryBase<CustomIdentityUserLogins>, ICustomIdentityUserLoginsRepository
+	public class CustomIdentityUserLoginsRepository : RepositoryBase<CustomIdentityUserLogins>, ICustomIdentityUserLoginsRepository
     {
         public CustomIdentityUserLoginsRepository(ApplicationDbContext context) : base(context)
 		{

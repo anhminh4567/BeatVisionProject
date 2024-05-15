@@ -55,7 +55,8 @@ namespace Repository.Implementation
 
         public virtual async Task<T?> GetById(object id)
         {
-            return await _dbSet.FindAsync(id);   
+            var result= await _dbSet.FindAsync(id);
+            return result;
         }
 		public virtual async Task<T?> GetByIdInclude(object id, string includeProperties = "")
 		{

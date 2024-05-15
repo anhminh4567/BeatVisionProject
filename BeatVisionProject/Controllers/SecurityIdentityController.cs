@@ -180,7 +180,7 @@ namespace BeatVisionProject.Controllers
 		[HttpGet("get-user")]
         public async Task<IActionResult> GetUser(int id,CancellationToken cancellationToken = default) 
         {
-            var result = _unitOfWork.Repositories.customIdentityUser.GetById(id);
+            var result = await _unitOfWork.Repositories.customIdentityUser.GetById(id);
             return Ok(result);
         }
     }

@@ -14,11 +14,17 @@ namespace Shared.Models
 		public UserProfile? Owner { get; set; }
 		public int SecondLenghth { get; set; }
 		public int PlayCount { get; set; }
-		public bool IsPrivate { get; set; }
-		public bool IsRemoved { get; set; } = false;
-		public bool IsForSale { get; set; } 
-		public string AudioBlobPath { get; set; }
-		public string BannerBlobPath { get; set; }
+		public bool IsAudioPrivate { get; set; }
+		public bool IsAudioRemoved { get; set; } = false;
+		public bool IsAudioForSale { get; set; }
+		public int AudioLenghtSeconds { get; set; }
+		public int? AudioBpm { get; set; } = null;
+		[Required]
+		public int AudioBlobId { get; set; }
+		public BlobFileData AudioFile { get; set; }
+		public int? BannerBlobId { get; set; }
+		public BlobFileData? BannerBlobFile{ get; set; }
+
 		[Column(TypeName = "nvarchar(30)")]
 		public TrackStatus Status { get; set; }
 		public IList<TrackComment> Comments { get; set; } = new List<TrackComment>();
