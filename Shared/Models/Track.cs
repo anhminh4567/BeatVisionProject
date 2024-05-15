@@ -21,7 +21,7 @@ namespace Shared.Models
 		public string BannerBlobPath { get; set; }
 		[Column(TypeName = "nvarchar(30)")]
 		public TrackStatus Status { get; set; }
-		public IList<Comment> Comments { get; set; } = new List<Comment>();
+		public IList<TrackComment> Comments { get; set; } = new List<TrackComment>();
 		public IList<Tag> Tags { get; set; } = new List<Tag>();
 		public IList<TrackLicense> Licenses { get; set; } = new List<TrackLicense>();
 		public IList<Album> Albums { get; set; } = new List<Album>();

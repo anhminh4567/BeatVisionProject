@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,8 +33,13 @@ namespace Shared.Models
         public IList<Track> OwnedTracks { get; set; } = new List<Track>(); 
         public IList<Album> OwnedAlbumbs { get; set; } = new List<Album>();
         public IList<PlayList> SavedPlaylist { get; set; } = new List<PlayList>();
+        
         public IList<Comment> Comments { get; set; } = new List<Comment>();
+        //public IList<TrackComment> TrackComments { get; set; } = new List<TrackComment>();
+        //public IList<AlbumComment> albumComments { get; set; } = new List<AlbumComment>();
+
         public IList<CartItem> CartItems { get; set; } = new List<CartItem>();
+
         public IList<UserProfile> Followers { get; set; } = new List<UserProfile>();
         public IList<UserProfile> Followings { get; set; } = new List<UserProfile>();
 	

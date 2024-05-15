@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Shared.Enums;
 using Shared.IdentityConfiguration;
 using Shared.Models;
 using System;
@@ -32,7 +33,11 @@ namespace Repository
         public DbSet<UserProfile> UserProfiles { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<Message> Messages { get; set; }
+
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<TrackComment> TrackComments { get; set; }
+        public DbSet<AlbumComment> albumComments { get; set; }
+        
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Track> Tracks { get; set; }
         public DbSet<TrackLicense> TrackLicenses { get;set;}
@@ -82,9 +87,9 @@ namespace Repository
                 //    noti.HasOne(n => n.Sender).WithMany(s => s.Notifications);
                 //    noti.HasOne(n => n.Message).WithMany(m => m.Notifications);
                 //});
-                entity.HasMany(e => e.Comments)
-                .WithOne(c => c.Author)
-                .HasForeignKey(c => c.AuthorId);
+                //entity.HasMany(e => e.Comments)
+                //.WithOne(c => c.Author)
+                //.HasForeignKey(c => c.AuthorId);
 			});
 			builder.Entity<Message>(entity =>
 			{
@@ -108,14 +113,14 @@ namespace Repository
                 .WithMany(t => t.Tracks);
                 entity.HasMany(t => t.Albums)
                 .WithMany(a => a.Tracks)
-                .UsingEntity("AlbumTrack", r => r.HasOne(typeof(Album)).WithMany().HasForeignKey("AlbumId").OnDelete(DeleteBehavior.NoAction),
+                .UsingEntity("AlbumTrack", r => r.HasOne(typeof(Album)).WithMany().HasForeignKey("AlbumId"),//.OnDelete(DeleteBehavior.NoAction),
                                     l => l.HasOne(typeof(Track)).WithMany().HasForeignKey("TrackId"),
                                     j => j.HasKey("TrackId", "AlbumId")
                 );
 				entity.HasMany(t => t.PlayLists)
                 .WithMany(p => p.Tracks);
                 entity.HasOne(t => t.Owner)
-                .WithMany(u => u.OwnedTracks).HasForeignKey(t => t.OwnerId);
+                .WithMany(u => u.OwnedTracks).HasForeignKey(t => t.OwnerId).OnDelete(DeleteBehavior.NoAction);
             });
             builder.Entity<Album>(entity =>
             {
@@ -129,13 +134,30 @@ namespace Repository
                 entity.HasOne(p => p.Owner)
                 .WithMany(u => u.SavedPlaylist).HasForeignKey(p => p.OwnerId).OnDelete(DeleteBehavior.NoAction);
             });
-            builder.Entity<Comment>(entity => 
+            builder.Entity<Comment>(entity =>
             {
-                entity.HasOne(c => c.Track)
-                .WithMany(t => t.Comments).HasForeignKey(c => c.TrackId).OnDelete(DeleteBehavior.NoAction);
-				entity.HasOne(c => c.Album)
-				.WithMany(t => t.Comments).HasForeignKey(c => c.AlbumId).OnDelete(DeleteBehavior.NoAction);
-			});
+				entity//.UseTphMappingStrategy()
+			   .HasDiscriminator(c => c.CommentType)
+			   .HasValue<TrackComment>(CommentType.TRACK)
+			   .HasValue<AlbumComment>(CommentType.ALBUM);
+				entity.HasOne(c => c.Author)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(c => c.AuthorId);
+                entity.HasOne(c => c.ReplyToComment)
+                .WithMany().HasForeignKey(c => c.ReplyToCommentId).OnDelete(DeleteBehavior.NoAction);
+            });
+            builder.Entity<TrackComment>(entity =>
+            {
+                entity.HasOne(tc => tc.Track)
+                .WithMany(t => t.Comments)
+                .HasForeignKey(tc => tc.TrackId).OnDelete(DeleteBehavior.NoAction);
+            });
+            builder.Entity<AlbumComment>(entity =>
+            {
+                entity.HasOne(ac => ac.Album)
+                .WithMany(a => a.Comments)
+                .HasForeignKey(ac => ac.AlbumId).OnDelete(DeleteBehavior.NoAction);
+            });
         }
 
     }

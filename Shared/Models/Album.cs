@@ -9,7 +9,7 @@
 		public int PlayCount { get; set; }
 		public bool IsPrivate { get; set; }
 		public IList<Tag> tags { get; set; } = new List<Tag>();
-		public IList<Comment> Comments { get; set; } = new List<Comment>();
+		public IList<AlbumComment> Comments { get; set; } = new List<AlbumComment>();
 		public IList<Track> Tracks { get; set; } = new List<Track>();
 
 	}
