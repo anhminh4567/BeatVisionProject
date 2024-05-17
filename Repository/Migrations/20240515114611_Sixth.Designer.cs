@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Repository;
 
@@ -11,9 +12,11 @@ using Repository;
 namespace Repository.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240515114611_Sixth")]
+    partial class Sixth
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -328,19 +331,8 @@ namespace Repository.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("GeneratedName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsPaidContent")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsPublicAccess")
                         .HasColumnType("bit");
-
-                    b.Property<string>("OriginalFileName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PathUrl")
                         .IsRequired()
@@ -539,22 +531,13 @@ namespace Repository.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("AudioBitPerSample")
-                        .HasColumnType("int");
-
                     b.Property<int>("AudioBlobId")
                         .HasColumnType("int");
 
                     b.Property<int?>("AudioBpm")
                         .HasColumnType("int");
 
-                    b.Property<int?>("AudioChannels")
-                        .HasColumnType("int");
-
-                    b.Property<double>("AudioLenghtSeconds")
-                        .HasColumnType("float");
-
-                    b.Property<int?>("AudioSampleRate")
+                    b.Property<int>("AudioLenghtSeconds")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsAudioForSale")
@@ -566,9 +549,6 @@ namespace Repository.Migrations
                     b.Property<bool>("IsAudioRemoved")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsPublished")
-                        .HasColumnType("bit");
-
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
 
@@ -577,9 +557,6 @@ namespace Repository.Migrations
 
                     b.Property<string>("ProfileBlobUrl")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("PublishDateTime")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("SecondLenghth")
                         .HasColumnType("int");

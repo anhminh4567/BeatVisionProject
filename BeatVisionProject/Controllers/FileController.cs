@@ -10,17 +10,17 @@ namespace BeatVisionProject.Controllers
 	[ApiController]
 	public class FileController : ControllerBase
 	{
-		private readonly IFileService _fileService;
+		private readonly FileService _fileService;
 
-		public FileController(IFileService fileService)
+		public FileController(FileService fileService)
 		{
 			_fileService = fileService;
 		}
 		[HttpPost("upload-file")]
-		public async Task<IActionResult> UploadFile(IFormFile file, BlobDirectoryType type, CancellationToken cancellationToken = default)
+		public async Task<IActionResult> UploadFile(IFormFile file, BlobDirectoryType type,string filepath, CancellationToken cancellationToken = default)
 		{
 			using Stream filStream = file.OpenReadStream();
-			var uploadResult =await _fileService.UploadFileAsync(filStream,  file.ContentType, type, cancellationToken);
+			var uploadResult =await _fileService.UploadFileAsync(filStream,  file.ContentType, filepath,type, cancellationToken);
 			return Ok(uploadResult);
 		}
 		[HttpPost("download-file")]
@@ -38,11 +38,12 @@ namespace BeatVisionProject.Controllers
 			return Ok();
 		}
 		[HttpPost("download-file-segment")]
-		public IAsyncEnumerable<byte[]> DownloadFileSegment(string furtherBreakdown, string fileId, CancellationToken cancellationToken = default)
+		public IActionResult DownloadFileSegment(string furtherBreakdown, string fileId, CancellationToken cancellationToken = default)
 		{
-			var filepath = furtherBreakdown + "/" + fileId;
-			var testPath = "good.mp4";
-		    return _fileService.StreamFileSegmentAsync(testPath, HttpContext,cancellationToken);
+			return Ok();
+			//var filepath = furtherBreakdown + "/" + fileId;
+			//var testPath = "good.mp4";
+		 //   return _fileService.StreamFileSegmentAsync(testPath, HttpContext,cancellationToken);
 		}
 		[HttpPost("cloudinary-file")]
 		public async Task<IActionResult> Test(IFormFile file)

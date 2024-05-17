@@ -48,14 +48,6 @@ builder.Services.AddSwaggerGen(opt =>
                 }
             });
 });
-//builder.Services.AddFluentEmail(appsettingsBinding.MailSettings.SenderEmail)
-//				.AddSmtpSender(
-//					host: appsettingsBinding.MailSettings.Host,
-//					port: appsettingsBinding.MailSettings.Port,
-//					username: appsettingsBinding.MailSettings.SenderEmail,
-//					password: appsettingsBinding.MailSettings.AppPassword
-//					)
-//				.AddRazorRenderer();
 builder.Services.AddServicesLayer(appsettingsBinding);
 
 //builder.Services.AddIdentity();

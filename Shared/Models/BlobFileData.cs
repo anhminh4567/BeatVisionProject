@@ -15,12 +15,15 @@ namespace Shared.Models
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
 		public decimal? SizeMb { get; set; }
+		public string OriginalFileName { get; set; }
+		public string GeneratedName { get; set; }
 		public string PathUrl { get; set; }
 		[Column(TypeName = "nvarchar(30)")]
-		public BlobDirectoryType DirectoryType { get; set; } = BlobDirectoryType.Public;
+		public BlobDirectoryType DirectoryType { get; set; } 
 		public string FileExtension { get; set; }
 		public string ContentType { get; set; }
-		public bool IsPublicAccess { get; set; } = true;
+		public bool IsPublicAccess { get; set; }  
+		public bool IsPaidContent { get; set; }
 		public DateTime UploadedDate { get; set; } = DateTime.Now;
 
 	}

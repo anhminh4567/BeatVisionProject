@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Services.Implementation
+namespace Shared.Helper
 {
-	public class ManageUserService
+	public class AudioFileHelper
 	{
-
 	}
 }

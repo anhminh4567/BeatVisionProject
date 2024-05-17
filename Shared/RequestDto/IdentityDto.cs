@@ -22,9 +22,10 @@ namespace Shared.RequestDto
         [NotNull]
         // ko them validation o day, identity se lo phan nay trong configuratoin cu no
         public string Password { get; set; }
-        [DataType(DataType.Date)]
-        [AllowNull]
-        public DateTime Dob { get; set; }
+        public string Fullname { get; set; }
+        //[DataType(DataType.Date)]
+        //[AllowNull]
+        //public DateTime Dob { get; set; }
     }
     public class LoginDto
     {
@@ -47,9 +48,15 @@ namespace Shared.RequestDto
     public class CreateRoleDto
     {
         [Required]
+        public int RoleId { get; set; }
+        [Required]
         public string RoleName { get; set; }
         [Required]
         public string Description { get; set; }
+    }
+    public class UpdateRoleDto : CreateRoleDto
+    {
+
     }
     public class ChangePasswordDto
     {

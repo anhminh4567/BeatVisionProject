@@ -14,6 +14,11 @@ using StackExchange.Redis;
 using Microsoft.Extensions.Caching.Distributed;
 using Quartz;
 using Services.BackgroundServices;
+using Newtonsoft.Json.Linq;
+using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Authentication;
+using System.Net.Http.Json;
+using Newtonsoft.Json;
 namespace Services
 {
     public static class RegisterDependency
@@ -23,6 +28,8 @@ namespace Services
             services.AddRepositoryService();
             services.AddScoped<ISecurityTokenServices,JwtTokenServices>();
             services.AddScoped<IUserIdentityService, UserIdentityServices>();
+            services.AddScoped<UserService>();
+            services.AddScoped<UserIdentityServices>();
             services.AddAuthentication(opt => 
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -56,15 +63,32 @@ namespace Services
                 opt.CallbackPath = "/signin-google";
                 opt.AccessType = "offline";
                 opt.SaveTokens = true;
-                opt.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
-                opt.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
+                //opt.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
+                //opt.Scope.Add("https://www.googleapis.com/auth/userinfo.profile");
                 opt.Scope.Add("openid");
                 opt.Scope.Add("profile");
                 opt.Scope.Add("email");
-                opt.Events.OnCreatingTicket = (ticketContext) =>
+                opt.Events.OnCreatingTicket = async (ticketContext) =>
                 {
-                    return Task.CompletedTask;
-                };
+                    var oauthProp = ticketContext.Properties;
+                    var identity = ticketContext.Identity;
+                    var items = oauthProp.Items;
+                    var accessToken = ticketContext.AccessToken;//oauthProp.Ticket.Properties.GetTokenValue("access_token");
+					var httpClient = new HttpClient();
+					httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+					var response = await httpClient.GetAsync("https://www.googleapis.com/oauth2/v2/userinfo");
+					if (response.IsSuccessStatusCode is false)
+					{
+                        identity.AddClaim(new System.Security.Claims.Claim("FAILURE","FAILURE"));
+					}
+                    else
+                    {
+                        var readResult = JsonConvert.DeserializeObject<GoogleOauthInfo>(await response.Content.ReadAsStringAsync());
+                        identity.AddClaim(new System.Security.Claims.Claim(ApplicationStaticValue.UsernameClaimType,readResult.Name));
+						identity.AddClaim(new System.Security.Claims.Claim(ApplicationStaticValue.MailClaimType, readResult.Email));
+                        identity.AddClaim(new System.Security.Claims.Claim(ApplicationStaticValue.ProfileImageUrlClaimType, readResult.Picture));
+					}
+				};
             });
 
             services.AddFluentEmail(appsettingBinding.MailSettings.SenderEmail)
@@ -77,15 +101,17 @@ namespace Services
                 .AddRazorRenderer();
 
             services.AddScoped<IMyEmailService,MailServices>();
-			
+            services.AddScoped<AudioFileServices>();
 
 			services.AddSingleton<BlobServiceClient>( (serviceProvider) => 
             {
                 var newClient =  new BlobServiceClient(appsettingBinding.ConnectionStrings.AzureBlobConnectionString);
                 return newClient;
             });
-			services.AddSingleton<IFileService,FileService>();
-            services.AddStackExchangeRedisCache(opt => 
+			//services.AddSingleton<IFileService,FileService>();
+			services.AddSingleton<FileService>();
+
+			services.AddStackExchangeRedisCache(opt => 
             {
                 var connectionString = appsettingBinding.ConnectionStrings.CacheConnectionString; 
                 opt.Configuration = connectionString;
@@ -116,6 +142,12 @@ namespace Services
             });
             return services;
         }
-
+		private class GoogleOauthInfo
+		{
+			public string Id { get; set; }
+			public string Email { get; set; }
+			public string Name { get; set; }
+			public string Picture { get; set; }
+		}
 	}
 }

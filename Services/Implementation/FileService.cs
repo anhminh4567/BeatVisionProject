@@ -16,7 +16,7 @@ using Error = Shared.Helper.Error;
 
 namespace Services.Implementation
 {
-    public class FileService : IFileService
+    public class FileService //: IFileService
 	{
 		private BlobServiceClient _blobServiceClient;
 		private const string PublicBlob = "public";
@@ -29,21 +29,31 @@ namespace Services.Implementation
 			_blobServiceClient = blobServiceClient;
 		}
 
-		public async Task<Result<string>> UploadFileAsync(Stream stream, string contentType,BlobDirectoryType blobDirectoryType, CancellationToken cancellationToken = default)
+		public async Task<Result<string>> UploadFileAsync(Stream stream, string contentType,string filePath,BlobDirectoryType blobDirectoryType, CancellationToken cancellationToken = default)
 		{
-			var getBlobContainerClient = GetCorrectBlobClient(blobDirectoryType);
-			if (getBlobContainerClient.isSuccess is false)
-				return Result.Fail();
-			var blobContainerClient = getBlobContainerClient.Value;
-			var fileIdDemo = Guid.NewGuid();
-			var blobClient = blobContainerClient.GetBlobClient(fileIdDemo.ToString());
-			var uploadResult = await blobClient.UploadAsync(
-				stream,
-				new BlobHttpHeaders { ContentType = contentType, },
-				cancellationToken: cancellationToken);
-			return Result<string>.Success(fileIdDemo.ToString());
+			var error = new Error();
+			try 
+			{
+				var getBlobContainerClient = GetCorrectBlobClient(blobDirectoryType);
+				if (getBlobContainerClient.isSuccess is false)
+					return Result.Fail();
+				var blobContainerClient = getBlobContainerClient.Value;
+				var blobClient = blobContainerClient.GetBlobClient(filePath);
+				var uploadResult = await blobClient.UploadAsync(
+					stream,
+					new BlobHttpHeaders { ContentType = contentType, },
+					cancellationToken: cancellationToken);
+				var tryGetBlobResult = uploadResult.Value; 
+				return Result<string>.Success(filePath);
+			}
+			catch(Exception ex) 
+			{
+				error.isException = true;
+				error.ErrorMessage = $"error in UploadFileAsync from class {typeof(FileService)}";
+				return Result<string>.Fail(error);
+			}
 		}
-		public async Task<Result<BlobFileResponseDto>> DownloadFileAsync(string fileId, BlobDirectoryType blobDirectoryType, CancellationToken cancellationToken = default)
+		public async Task<Result<BlobFileResponseDto>> DownloadFileAsync(string filePath, BlobDirectoryType blobDirectoryType, CancellationToken cancellationToken = default)
 		{
 			var error = new Error();
 			try
@@ -52,7 +62,7 @@ namespace Services.Implementation
 				if (getBlobContainerClient.isSuccess is false)
 					return Result<BlobFileResponseDto>.Fail();
 				var blobContainerClient = getBlobContainerClient.Value;
-				var blobClient = blobContainerClient.GetBlobClient(fileId.ToString());
+				var blobClient = blobContainerClient.GetBlobClient(filePath);
 				var response = await blobClient.DownloadStreamingAsync(cancellationToken: cancellationToken);
 				return Result<BlobFileResponseDto>.Success(new BlobFileResponseDto()
 				{
@@ -68,19 +78,13 @@ namespace Services.Implementation
 			}
 			
 		}
-		public async IAsyncEnumerable<byte[]> StreamFileSegmentAsync(string filename,HttpContext httpContext,CancellationToken cancellationToken = default) 
-		{
-			yield break;
-			throw new NotImplementedException();
-			
-		}
-		public async Task<Result> DeleteFileAsync(string fileId, BlobDirectoryType blobDirectoryType, CancellationToken cancellationToken = default) 
+		public async Task<Result> DeleteFileAsync(string filePath, BlobDirectoryType blobDirectoryType, CancellationToken cancellationToken = default) 
 		{
 			var getBlobContainerClient = GetCorrectBlobClient(blobDirectoryType);
 			if (getBlobContainerClient.isSuccess is false)
 				return Result.Fail();
 			var blobContainerClient = getBlobContainerClient.Value;
-			var blobClient = blobContainerClient.GetBlobClient(fileId);
+			var blobClient = blobContainerClient.GetBlobClient(filePath);
 			var deleteResult = await blobClient.DeleteAsync(cancellationToken:cancellationToken);
 			if (deleteResult.IsError)
 				return Result.Fail(new Shared.Helper.Error()

@@ -90,10 +90,10 @@ namespace Repository
                 //entity.HasMany(e => e.Comments)
                 //.WithOne(c => c.Author)
                 //.HasForeignKey(c => c.AuthorId);
-                entity
-                .HasOne(u => u.BannerBlobFile)
-                .WithOne()
-                .HasForeignKey<UserProfile>(u => u.BannerBlobId);
+                //entity
+                //.HasOne(u => u.BannerBlobFile)
+                //.WithOne()
+                //.HasForeignKey<UserProfile>(u => u.BannerBlobId);
 			});
 			builder.Entity<Message>(entity =>
 			{
@@ -125,10 +125,10 @@ namespace Repository
                 .WithMany(p => p.Tracks);
                 entity.HasOne(t => t.Owner)
                 .WithMany(u => u.OwnedTracks).HasForeignKey(t => t.OwnerId).OnDelete(DeleteBehavior.NoAction);
-				entity
-				.HasOne(u => u.BannerBlobFile)
-				.WithOne()
-				.HasForeignKey<Track>(u => u.BannerBlobId);
+				//entity
+				//.HasOne(u => u.BannerBlobFile)
+				//.WithOne()
+				//.HasForeignKey<Track>(u => u.BannerBlobId);
 				entity
 				.HasOne(u => u.AudioFile)
 				.WithOne()
@@ -140,10 +140,10 @@ namespace Repository
                 .WithMany(t => t.Albums);
                 entity.HasOne(a => a.Owner)
                 .WithMany(u => u.OwnedAlbumbs).HasForeignKey(a => a.OwnerId);
-				entity
-				.HasOne(u => u.BannerBlobFile)
-				.WithOne()
-				.HasForeignKey<Album>(u => u.BannerBlobId);
+				//entity
+				//.HasOne(u => u.BannerBlobFile)
+				//.WithOne()
+				//.HasForeignKey<Album>(u => u.BannerBlobId);
 			});
             builder.Entity<PlayList>(entity =>
             {

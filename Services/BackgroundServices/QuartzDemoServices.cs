@@ -19,7 +19,7 @@ namespace Services.BackgroundServices
 
 		public Task Execute(IJobExecutionContext context)
 		{
-			Console.WriteLine("	call from background " );
+			//Console.WriteLine("	call from background " );
 			return Task.CompletedTask;
 		}
 	}

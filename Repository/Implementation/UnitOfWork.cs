@@ -23,7 +23,7 @@ namespace Repository.Implementation
 
         public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
         {
-			if (_currentTransaction is not null)
+			if (_currentTransaction is null)
 				_currentTransaction = await _context.Database.BeginTransactionAsync(cancellationToken);
 		}
 

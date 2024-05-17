@@ -12,9 +12,11 @@ namespace Shared.ConfigurationBinding
         public JwtSection JwtSection { get; set; }
         public ExternalAuthenticationSection ExternalAuthenticationSection {get;set;}
         public MailSettings MailSettings { get; set; }
+        public ExternalUrls ExternalUrls { get; set; }
         public IEnumerable<MailTemplateRelativePath> MailTemplateRelativePath { get; set; }
         public IList<MailTemplateAbsolutePath> MailTemplateAbsolutePath { get; set; } = new List<MailTemplateAbsolutePath>();
-    }
+		public AppConstraints AppConstraints { get; set; }
+	}
     public class JwtSection
     {
         public string Key { get; set; }
@@ -57,4 +59,14 @@ namespace Shared.ConfigurationBinding
 		public string TemplateName { get; set; }
 		public string TemplateAbsolutePath { get; set; }
 	}
+    public class ExternalUrls
+    {
+        public string AzureBlobBaseUrl { get; set; }
+	}
+    public class AppConstraints
+    {
+        public string[] AllowAudioExtension { get; set; }
+		public string[] AllowImageExension { get; set; }
+	}
+    
 }

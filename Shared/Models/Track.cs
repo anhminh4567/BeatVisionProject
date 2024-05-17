@@ -16,17 +16,23 @@ namespace Shared.Models
 		public int PlayCount { get; set; }
 		public bool IsAudioPrivate { get; set; }
 		public bool IsAudioRemoved { get; set; } = false;
-		public bool IsAudioForSale { get; set; }
-		public int AudioLenghtSeconds { get; set; }
+		public bool IsAudioForSale { get; set; } = false;
+		public double AudioLenghtSeconds { get; set; }
 		public int? AudioBpm { get; set; } = null;
+		public int? AudioChannels { get; set; }
+		public int? AudioSampleRate { get; set; }
+		public int? AudioBitPerSample { get; set; }
 		[Required]
 		public int AudioBlobId { get; set; }
 		public BlobFileData AudioFile { get; set; }
-		public int? BannerBlobId { get; set; }
-		public BlobFileData? BannerBlobFile{ get; set; }
+		public string? ProfileBlobUrl { get; set; }
+		//public int? BannerBlobId { get; set; }
+		//public BlobFileData? BannerBlobFile{ get; set; }
 
 		[Column(TypeName = "nvarchar(30)")]
 		public TrackStatus Status { get; set; }
+		public bool IsPublished { get; set; } = false;
+		public DateTime PublishDateTime { get; set; }
 		public IList<TrackComment> Comments { get; set; } = new List<TrackComment>();
 		public IList<Tag> Tags { get; set; } = new List<Tag>();
 		public IList<TrackLicense> Licenses { get; set; } = new List<TrackLicense>();

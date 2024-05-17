@@ -19,8 +19,9 @@ namespace Shared.Models
         public CustomIdentityUser IdentityUser { get; set; } = null!;// Required reference navigation to principal
         public string? Description { get; set; }
         public string Fullname { get; set; }
-		public int? BannerBlobId { get; set; }
-		public BlobFileData? BannerBlobFile { get; set; }
+        public string? ProfileBlobUrl { get; set; }
+		//public int? BannerBlobId { get; set; }
+		//public BlobFileData? BannerBlobFile { get; set; }
 		public DateTime? Birthday { get; set; }
 		[Column(TypeName = "nvarchar(30)")]
 		public AcccountStatus AccountStatus { get; set; }

@@ -33,6 +33,7 @@ namespace BeatVisionProject.Controllers
             {
                 return StatusCode(registerResult.Error.StatusCode,registerResult.Error);
             }
+            
             return Ok(registerResult.Value);
         }
         [HttpPost("login")]
