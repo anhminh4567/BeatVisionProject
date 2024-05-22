@@ -9,15 +9,16 @@ namespace Shared.Models
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }	
-		public string Content { get; set; }
+		public string? Content { get; set; }
 		public DateTime CreateDate { get; set; } = DateTime.Now;
-		public int AuthorId { get; set; }
-		public UserProfile Author { get; set; }
+		public int? AuthorId { get; set; }
+		public UserProfile? Author { get; set; }
 		public int LikesCount { get; set; }
 		[Column(TypeName = "nvarchar(30)")]
 		public CommentType CommentType { get; set; }
 		public int? ReplyToCommentId { get; set; }
 		public Comment? ReplyToComment { get; set; }
+		public bool IsCommentRemoved { get; set; } = false;
 	}
 	public class TrackComment: Comment
 	{

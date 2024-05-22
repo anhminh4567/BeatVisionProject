@@ -8,6 +8,6 @@ namespace Shared.Enums
 {
 	public enum BlobDirectoryType
 	{
-		Public,PaidContent,Private,Test
+		Public,PaidContent,Private
 	}
 }

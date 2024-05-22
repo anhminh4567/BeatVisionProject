@@ -16,9 +16,17 @@ namespace Repository.Interface
         Task<T?> GetById(object id);
         Task<T?> GetByIdInclude(object id, string includeProperties = "");
 		Task<IEnumerable<T>> GetRange(int start, int take);
+        Task<IList<TAnything>> GetByCondition_selectReturn<TAnything>(
+			Expression<Func<T, TAnything>> selector,
+			Expression<Func<T, bool>> expression = null,
+			Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
+			string includeProperties = "");
 		Task<T> Create(T entity);
+        Task<bool> CreateRange(IEnumerable<T> entityRange);
 		Task<T> Update(T entity);
 		Task<T> Delete(T entity);
-        void Save();
+		Task<bool> DeleteRange(IEnumerable<T> entityRange);
+
+		void Save();
     }
 }

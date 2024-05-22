@@ -26,12 +26,11 @@ namespace Services.Implementation
 			_appsettings = appsettingBinding;
 		}
 		//return the string to + with base url to query and save to database
-		public async Task<Result<string>> UploadNewImage(IFormFile file, UserProfile user, CancellationToken cancellationToken = default)
+		public async Task<Result<string>> UploadNewImage(Stream fileStream, string fileName, string randomFileName,string contentType,CancellationToken cancellationToken = default)
 		{
 			var error = new Error();
 			var imageFolderDirectory = ApplicationStaticValue.BlobImageDirectory;
-			var randomFileName = Guid.NewGuid().ToString();
-			var fileExtensionResult = FileHelper.ExtractFileExtention(file.FileName);
+			var fileExtensionResult = FileHelper.ExtractFileExtention(fileName);
 			if(fileExtensionResult.isSuccess is false)
 			{
 				error.ErrorMessage = "file extension problem";
@@ -45,8 +44,7 @@ namespace Services.Implementation
 				return Result<string>.Fail(error);
 			}
 			var relativeFilePath = imageFolderDirectory + "/" + randomFileName + "." + fileExtension;
-			using var stream = file.OpenReadStream();
-			var uploadResult =  await _fileService.UploadFileAsync(stream, relativeFilePath, file.ContentType,BlobDirectoryType.Public);
+			var uploadResult =  await _fileService.UploadFileAsync(fileStream, relativeFilePath, contentType, BlobDirectoryType.Public);
 			if(uploadResult.isSuccess is false)
 			{
 				error.ErrorMessage = "error in upload file, now return";

@@ -43,14 +43,14 @@ namespace BeatVisionProject.Controllers
 			return Ok();
 			//var filepath = furtherBreakdown + "/" + fileId;
 			//var testPath = "good.mp4";
-		 //   return _fileService.StreamFileSegmentAsync(testPath, HttpContext,cancellationToken);
+		    //return _fileService.StreamFileSegmentAsync(testPath, HttpContext,cancellationToken);
 		}
 		[HttpPost("cloudinary-file")]
 		public async Task<IActionResult> Test(IFormFile file)
 		{
 			Console.WriteLine(Directory.GetCurrentDirectory());
-			var newCloudinary = new AudioFileTransformationService();
-			await newCloudinary.upload(file);
+			//var newCloudinary = new AudioFileTransformationService();
+			//await newCloudinary.upload(file);
 			return Ok();
 		}
 	}

@@ -16,11 +16,16 @@ namespace Shared.Enums
 	}
 	public enum TrackStatus
 	{
-		PUBLISH,REMOVED,PENDING
+		PUBLISHED,REMOVED,WAIT_FOR_PUBLISH, NOT_FOR_PUBLISH
 	}
 	public enum NotificationType
 	{
 		ALL,GROUP,SINGLE
+	}
+	public enum NotificationWeight
+	{
+		// days to remove
+		MINOR = 1, MAJOR = 2
 	}
 	public enum CommentType
 	{

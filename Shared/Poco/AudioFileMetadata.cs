@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Shared.Poco
 {
-	public class WavFileMetadata
+	public class FileMetadata
+	{
+		public decimal? SizeMb { get; set; }
+	}
+	public class WavFileMetadata : FileMetadata
 	{
 		public double SecondLenght { get; set; }
 		public int? BitPerSample { get; set; }
@@ -15,7 +19,7 @@ namespace Shared.Poco
 		public long SampleCount { get; set; }
 
 	}
-	public class Mp3FileMetadata
+	public class Mp3FileMetadata : FileMetadata
 	{
 		public double SecondLenght { get; set; }
 	}

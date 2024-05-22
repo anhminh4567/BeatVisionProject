@@ -10,6 +10,7 @@ using Shared.Helper;
 using Shared.Models;
 using Shared.Poco;
 using Shared.ResponseDto;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -188,6 +189,10 @@ namespace Services.Implementation
 			}
 			return await _fileService.DownloadFileAsync(getCorrectMp3File.PathUrl, BlobDirectoryType.Public, cancellationToken);
 		}
+		public async Task<Result> DeleteAudioFile_Any(string absoluteUri,BlobDirectoryType type, CancellationToken cancellationToken = default)
+		{
+			return await _fileService.DeleteFileAsync(absoluteUri,type,cancellationToken);
+		}
 		public async Task<Result> AttachAudioToMail()
 		{
 			return Result.Fail();
@@ -227,6 +232,8 @@ namespace Services.Implementation
 					metadata.SampleCount = sampleCount;
 					metadata.SampleRate = sampleRate;
 					metadata.BitPerSample = bitPerSample;
+					var getSize = FileHelper.GetFileSizeMegabyte(fileStream.Length, 2);
+					metadata.SizeMb = getSize;
 				}
 				return Result<WavFileMetadata>.Success(metadata);
 			}
@@ -247,6 +254,8 @@ namespace Services.Implementation
 				{
 					var secondLength = wavFileReader.TotalTime;
 					metadata.SecondLenght = secondLength.TotalSeconds;
+					var getSize = FileHelper.GetFileSizeMegabyte(fileStream.Length,2);
+					metadata.SizeMb = getSize;
 				}
 				return Result<Mp3FileMetadata>.Success(metadata);
 			}
@@ -333,6 +342,43 @@ namespace Services.Implementation
 		public Result<string> ConvertFilename_To_Wav(string mp3Filename)
 		{
 			return ConvertFileNameExtension(mp3Filename, "wav");
+		}
+		public Result IsWavFile(Stream fs, string filename)
+		{
+			var error = new Error();
+			var fileExtResult = FileHelper.ExtractFileExtention(filename);
+			if(fileExtResult.isSuccess is false || fileExtResult.Value != "wav")
+			{
+				error.ErrorMessage = "file is not wav file, cannot upload, require wav file for high quality";
+				return Result.Fail(error);
+			}
+			var tryReadResult = AnalizeWavAudioFile(fs, fileExtResult.Value);
+			if(tryReadResult.isSuccess is false)
+			{
+				error.isException = tryReadResult.Error.isException;
+				error.ErrorMessage = tryReadResult.Error.ErrorMessage;
+				return Result.Fail(error);
+			}
+
+			return Result.Success() ;
+		}
+		public Result IsMp3File(Stream fs, string filename)
+		{
+			var error = new Error();
+			var fileExtResult = FileHelper.ExtractFileExtention(filename);
+			if (fileExtResult.isSuccess is false || fileExtResult.Value != "mp3")
+			{
+				error.ErrorMessage = "file is not mp3 file, cannot upload";
+				return Result.Fail(error);
+			}
+			var tryReadResult = AnalizeMp3AudioFile(fs, fileExtResult.Value);
+			if (tryReadResult.isSuccess is false)
+			{
+				error.isException = tryReadResult.Error.isException;
+				error.ErrorMessage = tryReadResult.Error.ErrorMessage;
+				return Result.Fail(error);
+			}
+			return Result.Success();
 		}
 	}
 }

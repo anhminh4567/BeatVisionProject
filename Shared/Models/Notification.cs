@@ -11,7 +11,6 @@ namespace Shared.Models
 		public UserProfile? Receiver { get; set; }
 		public int? MessageId { get; set; }
 		public Message? Message { get; set; }
-		public bool IsImportant { get; set; } = false;
 		public bool IsReaded { get; set; } = false;
 		public DateTime ExpiredDate { get; set; }
 		//public DateTime CreatedDate { get; set; }

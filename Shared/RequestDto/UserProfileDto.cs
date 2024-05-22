@@ -10,14 +10,12 @@ using System.Threading.Tasks;
 
 namespace Shared.RequestDto
 {
-	internal class UserProfileDto
-	{
-	}
+
 	public class UpdateUserProfileDto
 	{
 		public string? Description { get; set; }
+		[MinLength(1)]
 		public string? Fullname { get; set; }
-		public IFormFile? NewProfileImage { get; set; }
 		public DateTime? Birthday { get; set; }= DateTime.Now;
 		public string? Caption { get; set; }
 		public string? Instagram { get; set; }
