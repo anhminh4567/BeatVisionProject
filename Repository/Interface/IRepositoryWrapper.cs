@@ -28,11 +28,10 @@ namespace Repository.Interface
 		IRepositoryBase<CartItem> cartItemRepository { get; set; }
 		IRepositoryBase<Comment> commentRepository { get; set; }
 		IRepositoryBase<TrackComment> trackCommentRepository { get; set; }
-		IRepositoryBase<AlbumComment> albumCommentRepository { get; set; }
+        IRepositoryBase<Coupon> couponRepository { get; set;}
 		IRepositoryBase<Track> trackRepository { get; set; }
 		IRepositoryBase<TrackLicense> trackLicenseRepository { get; set; }
-		IRepositoryBase<Album> albumRepository { get; set; }
-		IRepositoryBase<PlayList> playListRepository { get; set; }
+
 		IRepositoryBase<Tag> tagRepository { get; set; }
 		IRepositoryBase<BlobFileData> blobFileDataRepository { get; set; }
 

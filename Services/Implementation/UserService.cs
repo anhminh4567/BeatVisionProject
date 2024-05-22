@@ -59,54 +59,6 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 			return result;
 		}
-		public async Task<IList<PlayList>> GetAllUserPlaylists(UserProfile userProfile)
-		{
-			return (await _unitOfWork.Repositories.playListRepository
-				.GetByCondition(item => item.OwnerId == userProfile.Id)).ToList();
-		}
-		public async Task<PlayList?> GetUserPlayListDetail(UserProfile userProfile, int playListId)
-		{
-			return (await _unitOfWork.Repositories.playListRepository
-				.GetByCondition(pl => pl.OwnerId == userProfile.Id && pl.Id == playListId, null, "Tracks")).FirstOrDefault();
-		}
-		public async Task<PlayList> CreatePlayList(UserProfile userProfile, CreatePlayListDto createPlayListDto)
-		{
-			var createResult = await _unitOfWork.Repositories.playListRepository.Create(new PlayList()
-			{
-				CreateDate = DateTime.Now,
-				IsPrivate = createPlayListDto.IsPrivate,
-				OwnerId = userProfile.Id,
-				Name = createPlayListDto.Name,
-				PlayCount = 0,
-			});
-			await _unitOfWork.SaveChangesAsync();
-			return createResult;
-		}
-		public async Task<PlayList> UpdatePlaylist(UserProfile userProfile, UpdatePlayListDto updatePlayListDto)
-		{
-			var getPlaylistDetail = await GetUserPlayListDetail(userProfile, updatePlayListDto.PlayListId);
-			foreach (var trackId in updatePlayListDto.RemovedTrackId)
-			{
-				var getTrack = getPlaylistDetail.Tracks.FirstOrDefault(t => t.Id == trackId);
-				if (getTrack is not null)
-					getPlaylistDetail.Tracks.Remove(getTrack);
-			}
-			foreach (var trackId in updatePlayListDto.AddedTrackId)
-			{
-				var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
-				if (getTrack is not null)
-					getPlaylistDetail.Tracks.Add(getTrack);
-			}
-			var updateResult = await _unitOfWork.Repositories.playListRepository.Update(getPlaylistDetail);
-			await _unitOfWork.SaveChangesAsync();
-			return updateResult;
-		}
-		public async Task DeletePlayList(PlayList playListTobeDeleted)
-		{
-			await _unitOfWork.Repositories.playListRepository.Delete(playListTobeDeleted);
-			await _unitOfWork.SaveChangesAsync();
-		}
-		
 		public async Task<Result<UserProfile>> UpdateProfile(UserProfile userProfile, UpdateUserProfileDto updateUserProfileDto)
 		{
 			_mapper.Map(updateUserProfileDto, userProfile);

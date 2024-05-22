@@ -33,8 +33,6 @@ namespace Shared.Models
         public string? SoundCloud { get; set; }
         public string? Facebook { get; set; }
         public IList<Track> OwnedTracks { get; set; } = new List<Track>(); 
-        public IList<Album> OwnedAlbumbs { get; set; } = new List<Album>();
-        public IList<PlayList> SavedPlaylist { get; set; } = new List<PlayList>();
         
         public IList<Comment> Comments { get; set; } = new List<Comment>();
         //public IList<TrackComment> TrackComments { get; set; } = new List<TrackComment>();

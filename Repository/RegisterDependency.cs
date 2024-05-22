@@ -53,13 +53,13 @@ namespace Repository
 			services.AddScoped<IRepositoryBase<CartItem>, RepositoryBase<CartItem>>();
 			services.AddScoped<IRepositoryBase<Comment>, RepositoryBase<Comment>>();
 			services.AddScoped<IRepositoryBase<TrackComment>, RepositoryBase<TrackComment>>();
-			services.AddScoped<IRepositoryBase<AlbumComment>, RepositoryBase<AlbumComment>>();
 			services.AddScoped<IRepositoryBase<Track>, RepositoryBase<Track>>();
 			services.AddScoped<IRepositoryBase<TrackLicense>, RepositoryBase<TrackLicense>>();
-			services.AddScoped<IRepositoryBase<Album>, RepositoryBase<Album>>();
-			services.AddScoped<IRepositoryBase<PlayList>, RepositoryBase<PlayList>>();
+
+
 			services.AddScoped<IRepositoryBase<Tag>, RepositoryBase<Tag>>();
 			services.AddScoped<IRepositoryBase<BlobFileData>, RepositoryBase<BlobFileData>>();
+            services.AddScoped<IRepositoryBase<Coupon>, RepositoryBase<Coupon>>();
 
 
 			services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();

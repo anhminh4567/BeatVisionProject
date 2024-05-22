@@ -12,7 +12,7 @@ namespace Shared.Enums
 	}
 	public enum CartItemType
 	{
-		TRACK,ALBUM,SERVICE
+		TRACK,SERVICE
 	}
 	public enum TrackStatus
 	{
@@ -29,7 +29,11 @@ namespace Shared.Enums
 	}
 	public enum CommentType
 	{
-		TRACK,ALBUM
+		TRACK
+	}
+	public enum CouponType
+	{
+		Track,User
 	}
 	
 }

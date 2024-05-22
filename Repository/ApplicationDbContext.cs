@@ -35,15 +35,12 @@ namespace Repository
         public DbSet<Message> Messages { get; set; }
 
         public DbSet<Comment> Comments { get; set; }
-        public DbSet<TrackComment> TrackComments { get; set; }
-        public DbSet<AlbumComment> albumComments { get; set; }
-        
+        public DbSet<TrackComment> TrackComments { get; set; }        
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Track> Tracks { get; set; }
         public DbSet<TrackLicense> TrackLicenses { get;set;}
         public DbSet<Tag> Tags { get; set; }
-        public DbSet<Album> Albums { get; set; }    
-        public DbSet<PlayList> PlayLists { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -115,16 +112,9 @@ namespace Repository
                 .WithMany(l => l.TracksRelated);
                 entity.HasMany(t => t.Tags)
                 .WithMany(t => t.Tracks);
-                entity.HasMany(t => t.Albums)
-                .WithMany(a => a.Tracks)
-                .UsingEntity("AlbumTrack", r => r.HasOne(typeof(Album)).WithMany().HasForeignKey("AlbumId"),//.OnDelete(DeleteBehavior.NoAction),
-                                    l => l.HasOne(typeof(Track)).WithMany().HasForeignKey("TrackId"),
-                                    j => j.HasKey("TrackId", "AlbumId")
-                );
-				entity.HasMany(t => t.PlayLists)
-                .WithMany(p => p.Tracks);
+				
                 entity.HasOne(t => t.Owner)
-                .WithMany(u => u.OwnedTracks).HasForeignKey(t => t.OwnerId).OnDelete(DeleteBehavior.NoAction);
+                .WithMany(u => u.OwnedTracks).HasForeignKey(t => t.OwnerId).OnDelete(DeleteBehavior.Cascade);
 				//entity
 				//.HasOne(u => u.BannerBlobFile)
 				//.WithOne()
@@ -134,28 +124,12 @@ namespace Repository
 				.WithOne()
 				.HasForeignKey<Track>(u => u.AudioBlobId);
 			});
-            builder.Entity<Album>(entity =>
-            {
-                entity.HasMany(a => a.tags)
-                .WithMany(t => t.Albums);
-                entity.HasOne(a => a.Owner)
-                .WithMany(u => u.OwnedAlbumbs).HasForeignKey(a => a.OwnerId);
-				//entity
-				//.HasOne(u => u.BannerBlobFile)
-				//.WithOne()
-				//.HasForeignKey<Album>(u => u.BannerBlobId);
-			});
-            builder.Entity<PlayList>(entity =>
-            {
-                entity.HasOne(p => p.Owner)
-                .WithMany(u => u.SavedPlaylist).HasForeignKey(p => p.OwnerId).OnDelete(DeleteBehavior.NoAction);
-            });
+            
             builder.Entity<Comment>(entity =>
             {
-				entity//.UseTphMappingStrategy()
-			   .HasDiscriminator(c => c.CommentType)
-			   .HasValue<TrackComment>(CommentType.TRACK)
-			   .HasValue<AlbumComment>(CommentType.ALBUM);
+                entity//.UseTphMappingStrategy()
+               .HasDiscriminator(c => c.CommentType)
+               .HasValue<TrackComment>(CommentType.TRACK);
 				entity.HasOne(c => c.Author)
                 .WithMany(u => u.Comments)
                 .HasForeignKey(c => c.AuthorId);
@@ -166,19 +140,16 @@ namespace Repository
             {
                 entity.HasOne(tc => tc.Track)
                 .WithMany(t => t.Comments)
-                .HasForeignKey(tc => tc.TrackId).OnDelete(DeleteBehavior.NoAction);
-            });
-            builder.Entity<AlbumComment>(entity =>
-            {
-                entity.HasOne(ac => ac.Album)
-                .WithMany(a => a.Comments)
-                .HasForeignKey(ac => ac.AlbumId).OnDelete(DeleteBehavior.NoAction);
+                .HasForeignKey(tc => tc.TrackId).OnDelete(DeleteBehavior.Cascade);
             });
 
 
             builder.Entity<BlobFileData>(entity =>
             {
 
+            });
+            builder.Entity<Coupon>(entity => { 
+            
             });
         }
 

@@ -209,7 +209,7 @@ namespace Services.Implementation
 				{
 					var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(track.OwnerId);
 					var getFileFromPrivateDirectory = await _audioFileService.DownloadPrivateMp3Audio(getUserProfile,track.Id);
-					await _audioFileService.UploadMp3AudioFile();
+					//await _audioFileService.UploadMp3AudioFile();
 					track.Status = TrackStatus.PUBLISHED;
 					track.IsPublished = true;
 					await _unitOfWork.Repositories.trackRepository.Update(track);

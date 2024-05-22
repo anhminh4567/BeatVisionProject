@@ -36,45 +36,9 @@ namespace Services.Implementation
 			return (await _unitOfWork.Repositories.trackCommentRepository
 				.GetByCondition(c => c.AuthorId == userProfile.Id)).ToList();
 		}
-		public async Task<IList<AlbumComment>> GetAllUserAlbumnComment(UserProfile userProfile)
-		{
-			return (await _unitOfWork.Repositories.albumCommentRepository
-				.GetByCondition(c => c.AuthorId == userProfile.Id)).ToList();
-		}
-		public async Task<TrackComment?> GetTrackCommentDetail(int commentId)
-		{
-			return (await _unitOfWork.Repositories.trackCommentRepository
-				.GetByIdInclude(commentId, "Track"));
-		}
-		public async Task<AlbumComment?> GetAlbumCommentDetail(int albumnCommentId)
-		{
-			return await _unitOfWork.Repositories.albumCommentRepository
-				.GetByIdInclude(albumnCommentId, "Album");
-		}
-		public async Task<TrackComment> CreateTrackCommment(UserProfile userProfile, CreateTrackCommentDto createTrackCommentDto)
-		{
-			var createResult = await _unitOfWork.Repositories.trackCommentRepository.Create(new TrackComment()
-			{
-				AuthorId = userProfile.Id,
-				Content = createTrackCommentDto.Content,
-				ReplyToCommentId = createTrackCommentDto.ReplyToCommentId,
-				TrackId = createTrackCommentDto.TrackId,
-			});
-			await _unitOfWork.SaveChangesAsync();
-			return createResult;
-		}
-		public async Task<AlbumComment> CreateAlbumnComment(UserProfile userProfile, CreateAlbumnCommentDto createTrackCommentDto)
-		{
-			var createResult = await _unitOfWork.Repositories.albumCommentRepository.Create(new AlbumComment()
-			{
-				AuthorId = userProfile.Id,
-				Content = createTrackCommentDto.Content,
-				ReplyToCommentId = createTrackCommentDto.ReplyToCommentId,
-				AlbumId = createTrackCommentDto.AlbumId,
-			});
-			await _unitOfWork.SaveChangesAsync();
-			return createResult;
-		}
+
+
+
 		public async Task<Result> RemoveComment(UserProfile userProfile ,int commentId)
 		{
 			var getComment = await _unitOfWork.Repositories.commentRepository.GetById(commentId);

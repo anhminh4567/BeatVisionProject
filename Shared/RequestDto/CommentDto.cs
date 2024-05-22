@@ -29,13 +29,4 @@ namespace Shared.RequestDto
 			CommentType = Enums.CommentType.TRACK; 
 		}
 	}
-	public class CreateAlbumnCommentDto : CreateCommentDto
-	{
-		[Required]
-		public int AlbumId { get; set; }
-		public CreateAlbumnCommentDto()
-		{
-			CommentType = Enums.CommentType.ALBUM;
-		}
-	}
 }

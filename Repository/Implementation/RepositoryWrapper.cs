@@ -11,7 +11,7 @@ namespace Repository.Implementation
 {
     public class RepositoryWrapper : IRepositoryWrapper
     {
-		public RepositoryWrapper(ICustomIdentityUserRepository customIdentityUser, ICustomIdentityUserLoginsRepository customIdentityUserLogins, ICustomIdentityUserClaimsRepository customIdentityUserClaims, ICustomIdentityUserTokenRepository customIdentityUserToken, ICustomIdentityRoleRepository customIdentityRole, ICustomIdentityRoleClaimRepository customIdentityRoleClaim, ICustomIdentityUserRoleRepository customIdentityUserRole, IRepositoryBase<UserProfile> userProfileRepository, IRepositoryBase<Notification> notificationRepository, IRepositoryBase<Message> messageRepository, IRepositoryBase<CartItem> cartItemRepository, IRepositoryBase<Comment> commentRepository, IRepositoryBase<TrackComment> trackCommentRepository, IRepositoryBase<AlbumComment> albumCommentRepository, IRepositoryBase<Track> trackRepository, IRepositoryBase<TrackLicense> trackLicenseRepository, IRepositoryBase<Album> albumRepository, IRepositoryBase<PlayList> playListRepository, IRepositoryBase<Tag> tagRepository, IRepositoryBase<BlobFileData> blobFileDataRepository)
+		public RepositoryWrapper(ICustomIdentityUserRepository customIdentityUser, ICustomIdentityUserLoginsRepository customIdentityUserLogins, ICustomIdentityUserClaimsRepository customIdentityUserClaims, ICustomIdentityUserTokenRepository customIdentityUserToken, ICustomIdentityRoleRepository customIdentityRole, ICustomIdentityRoleClaimRepository customIdentityRoleClaim, ICustomIdentityUserRoleRepository customIdentityUserRole, IRepositoryBase<UserProfile> userProfileRepository, IRepositoryBase<Notification> notificationRepository, IRepositoryBase<Message> messageRepository, IRepositoryBase<CartItem> cartItemRepository, IRepositoryBase<Comment> commentRepository, IRepositoryBase<TrackComment> trackCommentRepository, IRepositoryBase<Coupon> couponRepository, IRepositoryBase<Track> trackRepository, IRepositoryBase<TrackLicense> trackLicenseRepository, IRepositoryBase<Tag> tagRepository, IRepositoryBase<BlobFileData> blobFileDataRepository)
 		{
 			this.customIdentityUser = customIdentityUser;
 			this.customIdentityUserLogins = customIdentityUserLogins;
@@ -26,11 +26,9 @@ namespace Repository.Implementation
 			this.cartItemRepository = cartItemRepository;
 			this.commentRepository = commentRepository;
 			this.trackCommentRepository = trackCommentRepository;
-			this.albumCommentRepository = albumCommentRepository;
+			this.couponRepository = couponRepository;
 			this.trackRepository = trackRepository;
 			this.trackLicenseRepository = trackLicenseRepository;
-			this.albumRepository = albumRepository;
-			this.playListRepository = playListRepository;
 			this.tagRepository = tagRepository;
 			this.blobFileDataRepository = blobFileDataRepository;
 		}
@@ -57,11 +55,10 @@ namespace Repository.Implementation
 		public IRepositoryBase<CartItem> cartItemRepository { get; set; }
 		public IRepositoryBase<Comment> commentRepository { get; set; }
 		public IRepositoryBase<TrackComment> trackCommentRepository { get; set; }
-		public IRepositoryBase<AlbumComment> albumCommentRepository { get; set; }
+		public IRepositoryBase<Coupon>  couponRepository { get; set; }
 		public IRepositoryBase<Track> trackRepository { get; set; }
 		public IRepositoryBase<TrackLicense> trackLicenseRepository { get; set; }
-		public IRepositoryBase<Album> albumRepository { get; set; }
-		public IRepositoryBase<PlayList> playListRepository { get; set; }
+
 		public IRepositoryBase<Tag> tagRepository { get; set; }
 		public IRepositoryBase<BlobFileData> blobFileDataRepository { get; set; }
 	}

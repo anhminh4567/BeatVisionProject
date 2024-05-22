@@ -31,14 +31,4 @@ namespace Shared.Models
 		public Track? Track { get; set; }
 		
 	}
-	public class AlbumComment: Comment
-	{
-		public AlbumComment()
-		{
-			CommentType = CommentType.ALBUM;
-		}
-		public int? AlbumId { get; set; }
-		public Album? Album { get; set; }
-		
-	}
 }

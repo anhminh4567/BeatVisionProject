@@ -36,7 +36,5 @@ namespace Shared.Models
 		public IList<TrackComment> Comments { get; set; } = new List<TrackComment>();
 		public IList<Tag> Tags { get; set; } = new List<Tag>();
 		public IList<TrackLicense> Licenses { get; set; } = new List<TrackLicense>();
-		public IList<Album> Albums { get; set; } = new List<Album>();
-		public IList<PlayList> PlayLists { get; set; } = new List<PlayList>();
 	}
 }

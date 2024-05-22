@@ -10,6 +10,5 @@ namespace Shared.Models
 		public int Id { get; set; }
 		public string Name { get; set; }
 		public IList<Track> Tracks { get; set; } = new List<Track>();
-		public IList<Album> Albums { get; set; } = new List<Album>();
 	}
 }
