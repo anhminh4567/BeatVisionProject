@@ -8,17 +8,22 @@ using Shared.ConfigurationBinding;
 using Shared.IdentityConfiguration;
 using Shared.Models;
 using Shared.RequestDto;
+using Shared.ResponseDto;
 namespace Shared.MapperProfiles
 {
 	public class Profiles : Profile
 	{
-		public Profiles(AppsettingBinding appsettingBinding) 
+		public Profiles() 
 		{
-			var azureBlobUrl = appsettingBinding.ExternalUrls.AzureBlobBaseUrl;
+			//var azureBlobUrl = appsettingBinding.ExternalUrls.AzureBlobBaseUrl;
 			//CreateMap<UpdateRoleDto, CustomIdentityRole>()
 			//.ForMember();
 
 			CreateMap<UpdateUserProfileDto, UserProfile>();
+			CreateMap<Track, TrackResponseDto>();
+			CreateMap<Tag, TagDto>();
+			CreateMap<TrackLicense, TrackLicenseDto>();
+			CreateMap<TrackComment, TrackCommentDto>();
 		}
 	}
 }

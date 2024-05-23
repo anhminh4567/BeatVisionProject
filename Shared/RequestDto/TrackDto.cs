@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+
 using Shared.Enums;
 using Shared.Models;
+using Shared.MyAttribute;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -15,16 +17,19 @@ namespace Shared.RequestDto
 	public class CreateTrackDto
 	{
 		[Required]
+		[FileType(new string[] { "audio/mpeg", "audio/wav" })]
 		public IFormFile uploadedFile { get; set; }
 		[AllowNull]
+		[FileType(new string[] {"image/jpeg" , "image/png"})]
 		public IFormFile? bannderFile { get; set; }
 		[Required]
 		[MinLength(1)]
+		[RegularExpression(@"^[a-zA-Z0-9\s.,]*$")]
 		public string TrackName { get; set; }
 		[Required]
 		public bool IsTrackPaidContent { get; set; }
 		[Required]
-		public IList<Tag> Tags { get; set; } = new List<Tag>();
+		public IList<int> TagsId { get; set; } = new List<int>();
 		public string? ProfileBlobUrl { get; set; } = null;
 	}
 	public class PublishTrackDto
@@ -33,13 +38,15 @@ namespace Shared.RequestDto
 		[NotNull]
 		public int TrackId { get; set; }
 		[Required]
+		[DataType(DataType.DateTime)]
 		public DateTime PublishDate { get; set; }
 		[Required]
 		public bool IsPublishNow { get; set; } = true;
 		[Required]
 		public bool IsTrackPaid { get; set; } = false;
-		[Range(0, 5000000)]
-		public decimal Price { get; set; } = 0;
+		[AllowNull]
+		[Range(1000, 5000000)]
+		public decimal? Price { get; set; } = 0;
 	}
 	public class RemovePublishTrackDto
 	{
@@ -47,7 +54,17 @@ namespace Shared.RequestDto
 	}
 	public class UpdatePublishtrackDto
 	{
-
+		[Required]
+		public int TrackId { get; set; }
+		[Required]
+		public bool IsRemovePublish { get; set; } = false;
+		[Required]
+		public bool IsChangePublishDate { get; set; } = true;
+		public DateTime PublishDate { get; set; }
+		[Required]
+		public bool IsChangeTrackPaid { get; set; }  = false;
+		[Range(1000, 5000000)]
+		public decimal Price { get; set; } = 0;
 	}
 	//public int Id { get; set; }
 	//public string TrackName { get; set; }

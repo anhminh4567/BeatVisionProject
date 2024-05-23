@@ -25,18 +25,18 @@ namespace Services.Implementation
 		private readonly AppsettingBinding _appsettings;
 		// AUDIO FILE CONVENTION
 		// PRIVATE CONTAINER:
-		// - PAID       : audio/{userid}/paid/{filenameGen.mp3/wav}  
-		// - PRIVATE    : audio/{userid}/{filenameGen.mp3/wav}
+		// - PAID       : audio/paid/{filenameGen}/{filenameGen.mp3/wav}  
+		// - PRIVATE    : audio/{filenameGen}/{filenameGen.mp3/wav}
 
 		// PUBLIC CONTAINER:
-		// - PUBLIC     : audio/{userid}/{filenameGen.mp3}
+		// - PUBLIC     : audio/{filenameGen.mp3}
 		public AudioFileServices(FileService fileService, IUnitOfWork unitOfWork, AppsettingBinding appsettings)
 		{
 			_fileService = fileService;
 			_unitOfWork = unitOfWork;
 			_appsettings = appsettings;
 		}
-		public async Task<Result<string>> UploadWavAudioFile(Stream fileStream, string contentType, UserProfile userProfile, string fileName, string randomFileName, bool isPaidContent, CancellationToken cancellationToken = default)
+		public async Task<Result<string>> UploadWavAudioFile(Stream fileStream, string contentType, string fileName, string randomFileName, bool isPaidContent, CancellationToken cancellationToken = default)
 		{
 			var error = new Error();
 			var audioFolderDirectory = ApplicationStaticValue.BlobAudioDirectory;
@@ -47,10 +47,11 @@ namespace Services.Implementation
 				error.ErrorMessage = "file extension problem";
 				return Result.Fail(error);
 			}
-			var fileExtension = fileExtensionResult.Value;
+			var fileExtension = "wav";//fileExtensionResult.Value;
 			if (isPaidContent)
 			{
-				var relativeFilePath = audioFolderDirectory + "/" + userProfile.Id + "/" + paidDirectory + "/" + randomFileName + "." + fileExtension;
+				//var relativeFilePath = audioFolderDirectory + "/" + userProfile.Id + "/" + paidDirectory + "/" + randomFileName + "." + fileExtension;
+				var relativeFilePath = audioFolderDirectory + "/"  + paidDirectory + "/" + randomFileName + "/" + randomFileName + "." + fileExtension;
 				var uploadResult = await _fileService.UploadFileAsync(fileStream, contentType, relativeFilePath, BlobDirectoryType.Private, cancellationToken);
 				if (uploadResult.isSuccess is false)
 				{
@@ -61,7 +62,8 @@ namespace Services.Implementation
 			}
 			else
 			{
-				var relativeFilePath = audioFolderDirectory + "/" + userProfile.Id + "/" + randomFileName + "." + fileExtension;
+				//var relativeFilePath = audioFolderDirectory + "/" + userProfile.Id + "/" + randomFileName + "." + fileExtension;
+				var relativeFilePath = audioFolderDirectory + "/" + randomFileName + "/" + randomFileName + "." + fileExtension;
 				var uploadResult = await _fileService.UploadFileAsync(fileStream, contentType, relativeFilePath, BlobDirectoryType.Private, cancellationToken);
 				if (uploadResult.isSuccess is false)
 				{
@@ -71,7 +73,7 @@ namespace Services.Implementation
 				return Result<string>.Success(relativeFilePath);
 			}
 		}
-		public async Task<Result<string>> UploadMp3AudioFile(Stream fileStream, string contentType, UserProfile userProfile, string fileName, string randomFileName, bool isPublic, bool isPaidContent, CancellationToken cancellationToken = default)
+		public async Task<Result<string>> UploadMp3AudioFile(Stream fileStream, string contentType,string fileName, string randomFileName, bool isPublic, bool isPaidContent, CancellationToken cancellationToken = default)
 		{
 			var error = new Error();
 			var audioFolderDirectory = ApplicationStaticValue.BlobAudioDirectory;
@@ -82,10 +84,11 @@ namespace Services.Implementation
 				error.ErrorMessage = "file extension problem";
 				return Result.Fail(error);
 			}
-			var fileExtension = fileExtensionResult.Value;
+			var fileExtension = "mp3";
 			if (isPaidContent)
 			{
-				var relativeFilePath = audioFolderDirectory + "/" + userProfile.Id + "/" + paidDirectory + "/" + randomFileName + "." + fileExtension;
+				var relativeFilePath = audioFolderDirectory + "/" + paidDirectory + "/" + randomFileName + "/" + randomFileName + "." + fileExtension;
+				
 				var uploadResult = await _fileService.UploadFileAsync(fileStream, contentType, relativeFilePath, BlobDirectoryType.Private, cancellationToken);
 				if (uploadResult.isSuccess is false)
 				{
@@ -97,7 +100,8 @@ namespace Services.Implementation
 			}
 			else if (isPublic is false)
 			{
-				var relativeFilePath = audioFolderDirectory + "/" + userProfile.Id + "/" + randomFileName + "." + fileExtension;
+				var relativeFilePath = audioFolderDirectory + "/" + randomFileName + "/" + randomFileName + "." + fileExtension;
+
 				var uploadResult = await _fileService.UploadFileAsync(fileStream, contentType, relativeFilePath, BlobDirectoryType.Private, cancellationToken);
 				if (uploadResult.isSuccess is false)
 				{
@@ -109,7 +113,7 @@ namespace Services.Implementation
 			}
 			else if (isPublic)
 			{
-				var relativeFilePath = audioFolderDirectory + "/" + userProfile.Id + "/" + randomFileName + "." + fileExtension;
+				var relativeFilePath = audioFolderDirectory + "/"  + randomFileName + "." + fileExtension;
 				var uploadResult = await _fileService.UploadFileAsync(fileStream, contentType, relativeFilePath, BlobDirectoryType.Public, cancellationToken);
 				if (uploadResult.isSuccess is false)
 				{
@@ -124,33 +128,30 @@ namespace Services.Implementation
 				return Result.Fail();
 			}
 		}
-		public async Task<Result<BlobFileResponseDto>> DownloadPrivateMp3Audio(UserProfile userProfile, int trackId, CancellationToken cancellationToken = default)
+		public async Task<Result<BlobFileResponseDto>> DownloadPrivateMp3Audio( int trackId, CancellationToken cancellationToken = default)
 		{
 			var error = new Error();
-			var getUserTrack = (await _unitOfWork.Repositories.trackRepository
-				.GetByCondition(t => t.OwnerId == userProfile.Id && t.Id == trackId, null, includeProperties: "AudioFile"))
-				.FirstOrDefault();
-			if (getUserTrack == null)
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile");
+			if (getTrack == null)
 			{
-				error.ErrorMessage = "no such track from user";
-				return Result<BlobFileResponseDto>.Fail();
+				error.ErrorMessage = "no track exist";
+				return Result<BlobFileResponseDto>.Fail(error);
 			}
-			var blobFile = getUserTrack.AudioFile;
+			var blobFile = getTrack.AudioFile;
 			var fileName = blobFile.GeneratedName + "." + blobFile.FileExtension;
 			// just get the mp3 file, which mean the id does not equal the one on track AudioBlobId
 			var getAllBlobFilesWithNames = await _unitOfWork.Repositories.blobFileDataRepository
-				.GetByCondition(f => f.GeneratedName == blobFile.GeneratedName && f.Id != getUserTrack.AudioBlobId);
+				.GetByCondition(f => f.GeneratedName == blobFile.GeneratedName && f.Id != getTrack.AudioBlobId);
 			if (blobFile.IsPaidContent)
 			{
-				var getCorrectMp3File = getAllBlobFilesWithNames
-					.FirstOrDefault(f => f.IsPaidContent == true && f.IsPublicAccess == false);
+				BlobFileData? getCorrectMp3File = getAllBlobFilesWithNames
+					.FirstOrDefault(f => f.IsPaidContent == true && f.IsPublicAccess == false); 
 				if (getCorrectMp3File == null)
 				{
 					error.ErrorMessage = "file not found on server";
 					return Result<BlobFileResponseDto>.Fail();
 				}
 				return await _fileService.DownloadFileAsync(getCorrectMp3File.PathUrl, BlobDirectoryType.Private, cancellationToken);
-
 			}
 			else
 			{
@@ -164,24 +165,37 @@ namespace Services.Implementation
 				return await _fileService.DownloadFileAsync(getCorrectMp3File.PathUrl, BlobDirectoryType.Private, cancellationToken);
 			}
 		}
-		public async Task<Result<BlobFileResponseDto>> DownloadPublicMp3Audio(UserProfile userProfile, int trackId, CancellationToken cancellationToken = default)
+		public async Task<Result<BlobFileResponseDto>> DownloadPrivateWavAudio(int trackId, CancellationToken cancellationToken = default)
 		{
 			var error = new Error();
-			var getUserTrack = (await _unitOfWork.Repositories.trackRepository
-				.GetByCondition(t => t.OwnerId == userProfile.Id && t.Id == trackId, null, includeProperties: "AudioFile"))
-				.FirstOrDefault();
-			if (getUserTrack == null)
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile");
+			if (getTrack == null)
 			{
-				error.ErrorMessage = "no such track from user";
+				error.ErrorMessage = "no track exist";
+				return Result<BlobFileResponseDto>.Fail(error);
+			}
+			var blobFile = getTrack.AudioFile;
+			var fileName = blobFile.GeneratedName + "." + blobFile.FileExtension;
+			return await _fileService.DownloadFileAsync(blobFile.PathUrl, BlobDirectoryType.Private, cancellationToken);
+
+
+		}
+		public async Task<Result<BlobFileResponseDto>> DownloadPublicMp3Audio( int trackId, CancellationToken cancellationToken = default)
+		{
+			var error = new Error();
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile");
+			if (getTrack == null)
+			{
+				error.ErrorMessage = "no such track";
 				return Result<BlobFileResponseDto>.Fail();
 			}
-			var blobFile = getUserTrack.AudioFile;
+			var blobFile = getTrack.AudioFile;
 			var fileName = blobFile.GeneratedName + "." + blobFile.FileExtension;
 			// just get the mp3 file, which mean the id does not equal the one on track AudioBlobId
 			var getAllBlobFilesWithNames = await _unitOfWork.Repositories.blobFileDataRepository
-				.GetByCondition(f => f.GeneratedName == blobFile.GeneratedName && f.Id != getUserTrack.AudioBlobId);
+				.GetByCondition(f => f.GeneratedName == blobFile.GeneratedName && f.Id != getTrack.AudioBlobId);
 			var getCorrectMp3File = getAllBlobFilesWithNames
-				.FirstOrDefault(f => f.IsPublicAccess == true);
+				.FirstOrDefault(f => f.IsPublicAccess == true && f.DirectoryType == BlobDirectoryType.Public);
 			if (getCorrectMp3File == null)
 			{
 				error.ErrorMessage = "file not found on server";

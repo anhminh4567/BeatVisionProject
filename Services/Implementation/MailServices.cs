@@ -1,8 +1,10 @@
 ﻿using FluentEmail.Core;
+using FluentEmail.Core.Models;
 using Services.Interface;
 using Shared.ConfigurationBinding;
 using Shared.Helper;
 using Shared.IdentityConfiguration;
+using Shared.Models;
 using Shared.Poco;
 using System;
 using System.Collections.Generic;
@@ -42,6 +44,42 @@ namespace Services.Implementation
             if (sendResult.Successful is false)
                 return Result.Fail();
             return Result.Success();
+        }
+        public async Task<Result> SendEmailWithTemplate_WithAttachment<T>(EmailMetaData emailMetaData, string templatePath, T templateModel, CancellationToken cancellationToken = default)
+        {
+            var error = new Error();
+			var emailSendingConfig = _fluentEmailServices
+                .To(emailMetaData.ToEmail)
+                .Subject(emailMetaData.Subject);
+            emailSendingConfig.UsingTemplateFromFile(templatePath, templateModel);
+            IList<Attachment> attachments = new List<Attachment>();
+            if(emailMetaData.Attachments is null)
+            {
+                error.ErrorMessage = "no stream to send as attachment, consider using another alternative";
+                return Result.Fail();
+            }
+            foreach (var attachment in emailMetaData.Attachments)
+            {
+				var newAttachment= new Attachment();
+                newAttachment.Data = attachment.FileStream;
+                newAttachment.ContentType = attachment.ContentType;
+                newAttachment.IsInline = false;
+                newAttachment.ContentId = Guid.NewGuid().ToString();
+                newAttachment.Filename = attachment.FileName;
+                attachments.Add(newAttachment);
+            }
+            foreach(var attachment in attachments)
+            {
+				emailSendingConfig.Attach(attachment);
+			}
+			var sendResult = await emailSendingConfig.SendAsync(cancellationToken);
+			if (sendResult.Successful is false)
+            {
+                error.ErrorMessage = "send fail, unknown reason";
+				return Result.Fail();
+			}
+			return Result.Success();
+
         }
     }
 }

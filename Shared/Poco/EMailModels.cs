@@ -18,4 +18,17 @@ namespace Shared.Poco
         [Required]
         public string ConfirmationToken { get; set; }
     }
+    public class DownloadTrackEmailModel
+    {
+		[Required]
+		public string ReceiverEmail { get; set; }
+		[Required]
+		public string Username { get; set; }
+		[Required]
+		public DateTime Timesend { get; set; }
+		[Required]
+		public string TrackName { get; set; }
+		[Required]
+		public string LicenseName { get; set; } 
+    }
 }

@@ -44,7 +44,7 @@ namespace Services.Implementation
 				return Result<string>.Fail(error);
 			}
 			var relativeFilePath = imageFolderDirectory + "/" + randomFileName + "." + fileExtension;
-			var uploadResult =  await _fileService.UploadFileAsync(fileStream, relativeFilePath, contentType, BlobDirectoryType.Public);
+			var uploadResult =  await _fileService.UploadFileAsync(fileStream,   contentType, relativeFilePath, BlobDirectoryType.Public);
 			if(uploadResult.isSuccess is false)
 			{
 				error.ErrorMessage = "error in upload file, now return";

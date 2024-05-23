@@ -21,8 +21,7 @@ namespace Services.Implementation
 		private BlobServiceClient _blobServiceClient;
 		private const string PublicBlob = "public";
 		private const string PrivateBlob = "private";
-		private const string TestBlob = "testBlob";
-		private const string PaidContent = "paidcontent";
+		//private const string PaidContent = "paidcontent";
 		private const int BufferSize = 4096;
 		public FileService(BlobServiceClient blobServiceClient)
 		{
@@ -101,9 +100,9 @@ namespace Services.Implementation
 				case BlobDirectoryType.Public:
 					blobContainerClient = _blobServiceClient.GetBlobContainerClient(PublicBlob);
 					break;
-				case BlobDirectoryType.PaidContent:
-					blobContainerClient = _blobServiceClient.GetBlobContainerClient(PaidContent);
-					break;
+				//case BlobDirectoryType.PaidContent:
+				//	blobContainerClient = _blobServiceClient.GetBlobContainerClient(PaidContent);
+				//	break;
 				case BlobDirectoryType.Private:
 					blobContainerClient = _blobServiceClient.GetBlobContainerClient(PrivateBlob);
 					break;

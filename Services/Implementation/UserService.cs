@@ -83,6 +83,28 @@ namespace Services.Implementation
 			}
 			return Result.Success();
 		}
-
+		public async Task<Result> ReadNotification(UserProfile user, Message message)
+		{
+			var error = new Error();
+			var getNotifcationOfUser =  (await _unitOfWork.Repositories.notificationRepository
+				.GetByCondition(noti => noti.ReceiverId == user.Id && noti.MessageId == message.Id) ).FirstOrDefault();
+			if(getNotifcationOfUser == null)
+			{
+				error.ErrorMessage = "can't find message";
+				return Result.Fail();
+			}
+			var result = await _unitOfWork.Repositories.notificationRepository.Delete(getNotifcationOfUser);
+			await _unitOfWork.SaveChangesAsync();
+			return result is null ? Result.Fail() : Result.Success();
+		}
+		public async Task<Result> ReadAllNotification(UserProfile user)
+		{
+			var error = new Error();
+			var getAllNotifcationsOfUser = (await _unitOfWork.Repositories.notificationRepository
+				.GetByCondition(noti => noti.ReceiverId == user.Id));
+			var result = await _unitOfWork.Repositories.notificationRepository.DeleteRange(getAllNotifcationsOfUser.ToList());
+			await _unitOfWork.SaveChangesAsync();
+			return result  ? Result.Success() : Result.Fail();
+		}
 	}
 }

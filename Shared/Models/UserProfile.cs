@@ -32,7 +32,7 @@ namespace Shared.Models
         public string? Youtube { get; set; }
         public string? SoundCloud { get; set; }
         public string? Facebook { get; set; }
-        public IList<Track> OwnedTracks { get; set; } = new List<Track>(); 
+        //public IList<Track> OwnedTracks { get; set; } = new List<Track>(); 
         
         public IList<Comment> Comments { get; set; } = new List<Comment>();
         //public IList<TrackComment> TrackComments { get; set; } = new List<TrackComment>();

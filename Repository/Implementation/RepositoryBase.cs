@@ -28,7 +28,7 @@ namespace Repository.Implementation
 		public virtual async Task<IEnumerable<T>> GetByCondition(
 			Expression<Func<T, bool>> filter = null,
 			Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
-			string includeProperties = "")
+			string includeProperties = "",int? skip = null, int? take =null)
 		{
 			IQueryable<T> query = _dbSet;
 
@@ -42,7 +42,10 @@ namespace Repository.Implementation
 			{
 				query = query.Include(includeProperty);
 			}
-
+			if(skip != null && take != null)
+			{
+				query = query.Skip(skip.Value).Take(take.Value);
+			}
 			if (orderBy != null)
 			{
 				return await orderBy(query).ToListAsync();
@@ -111,7 +114,8 @@ namespace Repository.Implementation
 		}
 		public virtual Task<T> Delete(T entity)
 		{
-			return Task.FromResult(_dbSet.Remove(entity).Entity);
+			var entityDeleted = _dbSet.Remove(entity).Entity;
+			return Task.FromResult(entityDeleted);
 		}
 		public Task<bool> DeleteRange(IEnumerable<T> entityRange)
 		{

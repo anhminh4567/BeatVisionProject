@@ -52,7 +52,6 @@ namespace Services.Implementation
 				await _unitOfWork.Repositories.notificationRepository.Delete(noti);
 			}
 			await _unitOfWork.SaveChangesAsync();
-			 
 		}
 		public async Task<Result> CreateNotification(CreateMessageDto create,
 			NotificationType sendScope,

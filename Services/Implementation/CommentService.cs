@@ -36,9 +36,29 @@ namespace Services.Implementation
 			return (await _unitOfWork.Repositories.trackCommentRepository
 				.GetByCondition(c => c.AuthorId == userProfile.Id)).ToList();
 		}
-
-
-
+		public async Task<IList<TrackComment>> GetTrackComments(Track track)
+		{
+			return (await _unitOfWork.Repositories.trackCommentRepository
+				.GetByCondition(t => t.Id == track.Id)).ToList();
+		}
+		public async Task<IList<TrackComment>> GetCommentReplys(TrackComment trackComment) 
+		{
+			return (await _unitOfWork.Repositories.trackCommentRepository.GetByCondition(t => t.ReplyToCommentId == trackComment.Id)).ToList() ;
+		}
+		public async Task<TrackComment> CreateTrackComment(UserProfile authorProfile, CreateTrackCommentDto createTrackCommentDto) 
+		{
+			var createDate = DateTime.Now;
+			var newComment = new TrackComment();
+			newComment.ReplyToCommentId = createTrackCommentDto.ReplyToCommentId;
+			newComment.IsCommentRemoved = false;
+			newComment.TrackId = createTrackCommentDto.TrackId;
+			newComment.CreateDate = createDate;
+			newComment.Content = createTrackCommentDto.Content;
+			newComment.AuthorId = authorProfile.Id;
+			newComment.LikesCount = 0;
+			newComment.LikesCount = 0;
+			return (await _unitOfWork.Repositories.trackCommentRepository.Create(newComment));
+		}
 		public async Task<Result> RemoveComment(UserProfile userProfile ,int commentId)
 		{
 			var getComment = await _unitOfWork.Repositories.commentRepository.GetById(commentId);

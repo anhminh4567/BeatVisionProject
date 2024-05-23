@@ -2,6 +2,7 @@
 using Shared.Helper;
 using Shared.Models;
 using Shared.RequestDto;
+using Shared.ResponseDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Services.Implementation
 {
-	public class TagService
+	public class TagManager
 	{
 		private readonly IUnitOfWork _unitOfWork;
 
-		public TagService(IUnitOfWork unitOfWork)
+		public TagManager(IUnitOfWork unitOfWork)
 		{
 			_unitOfWork = unitOfWork;
 		}

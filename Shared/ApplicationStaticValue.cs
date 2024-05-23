@@ -26,7 +26,7 @@ namespace Shared
 
         public static readonly string ContentTypeWav = "audio/wav";
         public static readonly string ContentTypeMp3 = "audio/mpeg";
-
+        public static readonly string ContentTypePdf = "application/pdf";
 		// AUDIO FILE CONVENTION
 		// PRIVATE CONTAINER:
 		// - PAID       : audio/{userid}/paid/{filenameGen.mp3/wav}  

@@ -26,11 +26,30 @@ namespace Services
         public static IServiceCollection AddServicesLayer(this IServiceCollection services, AppsettingBinding appsettingBinding)
         {
             services.AddRepositoryService();
-            services.AddScoped<ISecurityTokenServices,JwtTokenServices>();
+			services.AddFluentEmail(appsettingBinding.MailSettings.SenderEmail)
+				.AddSmtpSender(
+					host: appsettingBinding.MailSettings.Host,
+					port: appsettingBinding.MailSettings.Port,
+					username: appsettingBinding.MailSettings.SenderEmail,
+					password: appsettingBinding.MailSettings.AppPassword
+					)
+				.AddRazorRenderer();
+			services.AddSingleton<BlobServiceClient>((serviceProvider) =>
+			{
+				var newClient = new BlobServiceClient(appsettingBinding.ConnectionStrings.AzureBlobConnectionString);
+				return newClient;
+			});
+			services.AddSingleton<FileService>();
+			services.AddScoped<IMyEmailService, MailServices>();
+			services.AddScoped<ISecurityTokenServices,JwtTokenServices>();
             services.AddScoped<IUserIdentityService, UserIdentityServices>();
             services.AddScoped<UserService>();
             services.AddScoped<UserIdentityServices>();
-            services.AddAuthentication(opt => 
+            services.AddScoped<ImageFileServices>();
+			services.AddScoped<AudioFileServices>();
+            services.AddScoped<TagManager>();
+			services.AddScoped<TrackManager>();
+			services.AddAuthentication(opt => 
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -91,26 +110,9 @@ namespace Services
 				};
             });
 
-            services.AddFluentEmail(appsettingBinding.MailSettings.SenderEmail)
-                .AddSmtpSender(
-                    host: appsettingBinding.MailSettings.Host,
-                    port: appsettingBinding.MailSettings.Port,
-                    username: appsettingBinding.MailSettings.SenderEmail,
-                    password: appsettingBinding.MailSettings.AppPassword
-                    )
-                .AddRazorRenderer();
-
-            services.AddScoped<IMyEmailService,MailServices>();
-            services.AddScoped<AudioFileServices>();
-
-			services.AddSingleton<BlobServiceClient>( (serviceProvider) => 
-            {
-                var newClient =  new BlobServiceClient(appsettingBinding.ConnectionStrings.AzureBlobConnectionString);
-                return newClient;
-            });
-			//services.AddSingleton<IFileService,FileService>();
-			services.AddSingleton<FileService>();
-
+            
+            
+			
 			services.AddStackExchangeRedisCache(opt => 
             {
                 var connectionString = appsettingBinding.ConnectionStrings.CacheConnectionString; 
@@ -126,14 +128,21 @@ namespace Services
             services.AddQuartz(options =>
             {
                 var demoJobKey = nameof(QuartzDemoServices);
+                var publishTrackServiceKey = nameof(PublishTrackBackgroundService);
 				options.UseMicrosoftDependencyInjectionJobFactory();
-                options
-                    .AddJob<QuartzDemoServices>(JobKey.Create(demoJobKey), config => { })
+                options.AddJob<QuartzDemoServices>(JobKey.Create(demoJobKey), config => { })
                     .AddTrigger(trigger => trigger
                         .ForJob(demoJobKey)
                         .WithSimpleSchedule(schedule =>
                         {
                             schedule.WithIntervalInSeconds(5).RepeatForever();
+                        }));
+                options.AddJob<PublishTrackBackgroundService>(JobKey.Create(publishTrackServiceKey), config =>{ })
+                    .AddTrigger(trigger => trigger
+                        .ForJob(publishTrackServiceKey)
+                        .WithSimpleSchedule(schedule =>
+                        {
+                            schedule.WithIntervalInMinutes(2).RepeatForever();
                         }));
             });
             services.AddQuartzHostedService(options =>

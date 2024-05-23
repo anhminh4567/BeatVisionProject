@@ -113,12 +113,9 @@ namespace Repository
                 entity.HasMany(t => t.Tags)
                 .WithMany(t => t.Tracks);
 				
-                entity.HasOne(t => t.Owner)
-                .WithMany(u => u.OwnedTracks).HasForeignKey(t => t.OwnerId).OnDelete(DeleteBehavior.Cascade);
-				//entity
-				//.HasOne(u => u.BannerBlobFile)
-				//.WithOne()
-				//.HasForeignKey<Track>(u => u.BannerBlobId);
+                //entity.HasOne(t => t.Owner)
+                //.WithMany(u => u.OwnedTracks).HasForeignKey(t => t.OwnerId).OnDelete(DeleteBehavior.Cascade);
+
 				entity
 				.HasOne(u => u.AudioFile)
 				.WithOne()

@@ -9,22 +9,22 @@ using System.Threading.Tasks;
 
 namespace Services.BackgroundServices
 {
-	public class QuartzDemoServices : IJob
+	public class PublishTrackBackgroundService : IJob
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly TrackManager _trackManager;
 
-		public QuartzDemoServices(IUnitOfWork unitOfWork, TrackManager trackManager)
+		public PublishTrackBackgroundService(IUnitOfWork unitOfWork, TrackManager trackManager)
 		{
 			_unitOfWork = unitOfWork;
 			_trackManager = trackManager;
 		}
 
-		public Task Execute(IJobExecutionContext context)
+		public async  Task Execute(IJobExecutionContext context)
 		{
-			//Console.WriteLine("	call from background " );
+			Console.WriteLine("background publish is triggered");
+			await _trackManager.PublishTrack();
 			
-			return Task.CompletedTask;
 		}
 	}
 }

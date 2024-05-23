@@ -10,8 +10,8 @@ namespace Shared.Models
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }	
 		public string TrackName { get; set; }
-		public int OwnerId { get; set; }
-		public UserProfile? Owner { get; set; }
+		//public int OwnerId { get; set; }
+		//public UserProfile? Owner { get; set; }
 		public int PlayCount { get; set; }
 		public bool IsAudioPrivate { get; set; }
 		public bool IsAudioRemoved { get; set; } = false;

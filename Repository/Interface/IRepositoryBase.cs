@@ -12,7 +12,7 @@ namespace Repository.Interface
         Task<IEnumerable<T>> GetAll();
         Task<IEnumerable<T>> GetByCondition(Expression<Func<T, bool>> expression = null,
             Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,
-            string includeProperties = "");
+            string includeProperties = "", int? skip = null, int? take = null);
         Task<T?> GetById(object id);
         Task<T?> GetByIdInclude(object id, string includeProperties = "");
 		Task<IEnumerable<T>> GetRange(int start, int take);

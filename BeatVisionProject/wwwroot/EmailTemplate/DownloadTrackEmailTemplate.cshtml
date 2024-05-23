@@ -1,0 +1,24 @@
+﻿@using System.Text;
+@model Shared.Poco.DownloadTrackEmailModel
+@{
+	var username = Model.Username;
+	var trackName = Model.TrackName;
+	var userMail = Model.ReceiverEmail;
+	var timeSend = Model.Timesend.ToString();
+	var licenseName = Model.LicenseName;
+}
+<h3>Download Track Template</h3>
+<body>
+	<h1 style="background-color:black; color:white">
+		This is send from gmail smtp server,
+		<strong>not from local </strong>,
+		learn more to send from local
+	</h1>
+	<div style="background-color:white; color:black">
+		<p> @username </p>
+		<p> @trackName </p>
+		<p> @userMail </p>
+		<p> @timeSend </p>
+		<p> @licenseName </p>
+	</div>
+</body>

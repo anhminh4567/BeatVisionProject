@@ -16,7 +16,7 @@ namespace Shared.Enums
 	}
 	public enum TrackStatus
 	{
-		PUBLISHED,REMOVED,WAIT_FOR_PUBLISH, NOT_FOR_PUBLISH
+		PUBLISH,REMOVED,WAIT_FOR_PUBLISH, NOT_FOR_PUBLISH
 	}
 	public enum NotificationType
 	{
