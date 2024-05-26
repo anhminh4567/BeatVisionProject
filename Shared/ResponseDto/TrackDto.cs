@@ -28,6 +28,9 @@ namespace Shared.ResponseDto
 		public int? AudioChannels { get; set; }
 		public int? AudioSampleRate { get; set; }
 		public int? AudioBitPerSample { get; set; }
+		public bool IsPublished { get; set; } = false;
+		public DateTime? PublishDateTime { get; set; }
+		public decimal Price { get; set; }
 		public IList<TrackCommentDto> Comments { get; set; } = new List<TrackCommentDto>();
 		public IList<TagDto> Tags { get; set; } = new List<TagDto>();
 		public IList<TrackLicenseDto> Licenses { get; set; } = new List<TrackLicenseDto>();

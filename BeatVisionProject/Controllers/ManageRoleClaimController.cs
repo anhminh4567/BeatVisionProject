@@ -10,11 +10,11 @@ namespace BeatVisionProject.Controllers
 	[ApiController]
 	public class ManageRoleClaimController : ControllerBase
 	{
-		private readonly UserService _manageUserService;
+		private readonly AppUserManager _manageUserService;
 		private readonly UserIdentityServices _userIdentityService;
 		private readonly IUnitOfWork _unitOfWork;
 
-		public ManageRoleClaimController(UserService manageUserService, UserIdentityServices userIdentityService, IUnitOfWork unitOfWork)
+		public ManageRoleClaimController(AppUserManager manageUserService, UserIdentityServices userIdentityService, IUnitOfWork unitOfWork)
 		{
 			_manageUserService = manageUserService;
 			_userIdentityService = userIdentityService;

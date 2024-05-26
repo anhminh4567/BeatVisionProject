@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Shared.Enums;
+using Shared.MyAttribute;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -22,5 +23,10 @@ namespace Shared.RequestDto
 		public string? Youtube { get; set; }
 		public string? SoundCloud { get; set; }
 		public string? Facebook { get; set; }
+	}
+	public class UpdateProfileImageDto
+	{
+		[FileType(new string[] { "image/jpeg", "image/png"})]
+		public IFormFile imageFile { get; set; }
 	}
 }

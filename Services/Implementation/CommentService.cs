@@ -36,6 +36,10 @@ namespace Services.Implementation
 			return (await _unitOfWork.Repositories.trackCommentRepository
 				.GetByCondition(c => c.AuthorId == userProfile.Id)).ToList();
 		}
+		public async Task<TrackComment?> GetTrackCommentDetail(int commentId)
+		{
+			return (await _unitOfWork.Repositories.trackCommentRepository.GetByIdInclude(commentId, "ReplyToComment,Track"));
+		}
 		public async Task<IList<TrackComment>> GetTrackComments(Track track)
 		{
 			return (await _unitOfWork.Repositories.trackCommentRepository
@@ -56,8 +60,9 @@ namespace Services.Implementation
 			newComment.Content = createTrackCommentDto.Content;
 			newComment.AuthorId = authorProfile.Id;
 			newComment.LikesCount = 0;
-			newComment.LikesCount = 0;
-			return (await _unitOfWork.Repositories.trackCommentRepository.Create(newComment));
+			var createResult = await _unitOfWork.Repositories.trackCommentRepository.Create(newComment);
+			await _unitOfWork.SaveChangesAsync();
+			return createResult;
 		}
 		public async Task<Result> RemoveComment(UserProfile userProfile ,int commentId)
 		{

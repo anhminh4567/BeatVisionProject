@@ -17,18 +17,22 @@ namespace BeatVisionProject.Controllers
 		private readonly TrackManager _trackManager;
 		private readonly AppsettingBinding _appsetting;
 		private readonly IUserIdentityService _userIdentityService;
-		private readonly UserService _userService;
+		private readonly AppUserManager _appUserManager;
 		private readonly IUnitOfWork _unitOfWork;
+		private readonly CommentService _commentService;
 		private readonly int AmountPerPage = 10;
 
-		public ManageTrackController(TrackManager trackManager, AppsettingBinding appsetting, IUserIdentityService userIdentityService, UserService userService, IUnitOfWork unitOfWork)
+		public ManageTrackController(TrackManager trackManager, AppsettingBinding appsetting, IUserIdentityService userIdentityService, AppUserManager appUserManager, IUnitOfWork unitOfWork, CommentService commentService, int amountPerPage)
 		{
 			_trackManager = trackManager;
 			_appsetting = appsetting;
 			_userIdentityService = userIdentityService;
-			_userService = userService;
+			_appUserManager = appUserManager;
 			_unitOfWork = unitOfWork;
+			_commentService = commentService;
+			AmountPerPage = amountPerPage;
 		}
+
 		[HttpGet("get-public-trackfile")]
 		public async Task<ActionResult> GetTrackMp3Public([FromQuery]int trackId)
 		{
@@ -92,5 +96,18 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok();
 		}
+		[HttpGet("get-comments")]
+		public async Task<ActionResult> GetTrackComments([FromQuery]int trackId)
+		{
+			var getComments = await _trackManager.GetTrackComments(trackId);
+			return Ok(getComments);
+		}
+		[HttpGet("get-comments-reply")]
+		public async Task<ActionResult> GetTrackCommentReplies([FromQuery] int trackId, [FromQuery] int commentId)
+		{
+			var getComments = await _trackManager.GetTrackCommentReplies(trackId,commentId);
+			return Ok(getComments);
+		}
+
 	}
 }

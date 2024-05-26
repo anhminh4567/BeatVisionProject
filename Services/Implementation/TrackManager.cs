@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,9 +31,10 @@ namespace Services.Implementation
 		private readonly IMyEmailService _mailServices;
 		private readonly TagManager _tagService;
 		private readonly AppsettingBinding _appSettings;
+		private readonly CommentService _commentService;
 		private readonly IMapper _mapper;
 
-		public TrackManager(IUnitOfWork unitOfWork, AudioFileServices audioFileService, ImageFileServices imageFileService, IMyEmailService mailServices, TagManager tagService, AppsettingBinding appSettings, IMapper mapper)
+		public TrackManager(IUnitOfWork unitOfWork, AudioFileServices audioFileService, ImageFileServices imageFileService, IMyEmailService mailServices, TagManager tagService, AppsettingBinding appSettings, CommentService commentService, IMapper mapper)
 		{
 			_unitOfWork = unitOfWork;
 			_audioFileService = audioFileService;
@@ -40,8 +42,12 @@ namespace Services.Implementation
 			_mailServices = mailServices;
 			_tagService = tagService;
 			_appSettings = appSettings;
+			_commentService = commentService;
 			_mapper = mapper;
 		}
+
+
+
 
 
 		//create a track will always be private and not for sales, not until the publish is made will the track be decided to be public or not
@@ -452,6 +458,23 @@ namespace Services.Implementation
 			await _unitOfWork.Repositories.trackRepository.Delete(getTrack);
 			await _unitOfWork.SaveChangesAsync();
 			return Result.Success();
+		}
+
+		public async Task<IList<TrackCommentDto>> GetTrackComments(int trackId)
+		{
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
+			if (getTrack is null)
+				return new List<TrackCommentDto>();
+			var getResult = await _commentService.GetTrackComments(getTrack);
+			return _mapper.Map<IList<TrackCommentDto>>(getResult);
+		}
+		public async Task<IList<TrackCommentDto>> GetTrackCommentReplies(int trackId,int commentId)
+		{
+			var getTrackComment = (await _unitOfWork.Repositories.trackCommentRepository.GetByCondition(c => c.TrackId == trackId && c.Id == commentId)).FirstOrDefault();
+			if (getTrackComment is null)
+				return new List<TrackCommentDto>();
+			var getComments = _commentService.GetCommentReplys(getTrackComment);
+			return _mapper.Map<IList<TrackCommentDto>>(getComments);
 		}
 	}
 }

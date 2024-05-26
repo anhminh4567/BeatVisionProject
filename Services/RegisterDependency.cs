@@ -43,7 +43,8 @@ namespace Services
 			services.AddScoped<IMyEmailService, MailServices>();
 			services.AddScoped<ISecurityTokenServices,JwtTokenServices>();
             services.AddScoped<IUserIdentityService, UserIdentityServices>();
-            services.AddScoped<UserService>();
+            services.AddScoped<CommentService>();
+            services.AddScoped<AppUserManager>();
             services.AddScoped<UserIdentityServices>();
             services.AddScoped<ImageFileServices>();
 			services.AddScoped<AudioFileServices>();
@@ -71,7 +72,6 @@ namespace Services
                 config.SaveToken = true;
             }).AddGoogle(ApplicationStaticValue.GoogleScheme, opt =>
             {
-                //var externalAuthSection = builder.Configuration.GetSection("ExternalAuthenticationSection").Get<ExternalAuthenticationSection>();
                 var externalAuthSection = appsettingBinding.ExternalAuthenticationSection;
                 opt.ClientId = externalAuthSection.GoogleAuthenticationSection.ClientId;
                 opt.ClientSecret = externalAuthSection.GoogleAuthenticationSection.ClientSecret;
@@ -119,8 +119,6 @@ namespace Services
                 opt.Configuration = connectionString;
             });
             services.AddBackgroundServices(appsettingBinding);
-			//services.AddSingleton<IConnectionMultiplexer>(factory => ConnectionMultiplexer.Connect(appsettingBinding.ConnectionStrings.CacheConnectionString));
-   //         services.AddSingleton<ICacheService,RedisCacheService>();
 			return services;
         }
 		private static IServiceCollection AddBackgroundServices(this IServiceCollection services, AppsettingBinding appsettingBinding)

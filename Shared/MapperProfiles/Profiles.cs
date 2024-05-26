@@ -15,10 +15,6 @@ namespace Shared.MapperProfiles
 	{
 		public Profiles() 
 		{
-			//var azureBlobUrl = appsettingBinding.ExternalUrls.AzureBlobBaseUrl;
-			//CreateMap<UpdateRoleDto, CustomIdentityRole>()
-			//.ForMember();
-
 			CreateMap<UpdateUserProfileDto, UserProfile>();
 			CreateMap<Track, TrackResponseDto>();
 			CreateMap<Tag, TagDto>();
