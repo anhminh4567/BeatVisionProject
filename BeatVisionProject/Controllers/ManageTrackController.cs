@@ -22,7 +22,7 @@ namespace BeatVisionProject.Controllers
 		private readonly CommentService _commentService;
 		private readonly int AmountPerPage = 10;
 
-		public ManageTrackController(TrackManager trackManager, AppsettingBinding appsetting, IUserIdentityService userIdentityService, AppUserManager appUserManager, IUnitOfWork unitOfWork, CommentService commentService, int amountPerPage)
+		public ManageTrackController(TrackManager trackManager, AppsettingBinding appsetting, IUserIdentityService userIdentityService, AppUserManager appUserManager, IUnitOfWork unitOfWork, CommentService commentService)
 		{
 			_trackManager = trackManager;
 			_appsetting = appsetting;
@@ -30,7 +30,6 @@ namespace BeatVisionProject.Controllers
 			_appUserManager = appUserManager;
 			_unitOfWork = unitOfWork;
 			_commentService = commentService;
-			AmountPerPage = amountPerPage;
 		}
 
 		[HttpGet("get-public-trackfile")]

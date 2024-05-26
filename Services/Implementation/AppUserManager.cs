@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CloudinaryDotNet.Actions;
 using Repository.Interface;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
@@ -11,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Error = Shared.Helper.Error;
 
 namespace Services.Implementation
 {
@@ -22,32 +24,41 @@ namespace Services.Implementation
 		private readonly AppsettingBinding _appsettings;
 		private readonly IMapper _mapper;
 
-		public AppUserManager(IUnitOfWork unitOfWork, ImageFileServices imageFileServices, AppsettingBinding appsettings, IMapper mapper)
+		public AppUserManager(IUnitOfWork unitOfWork, ImageFileServices imageFileServices, CommentService commentService, AppsettingBinding appsettings, IMapper mapper)
 		{
 			_unitOfWork = unitOfWork;
 			_imageFileServices = imageFileServices;
+			_commentService = commentService;
 			_appsettings = appsettings;
 			_mapper = mapper;
 		}
-		public async Task<IList<CartItem>> GetAllUserItems(UserProfile userProfile)
+
+		public async Task<IList<CartItemDto>> GetAllUserItems(UserProfile userProfile)
 		{
-			return (await _unitOfWork.Repositories.cartItemRepository
+			var getResult = (await _unitOfWork.Repositories.cartItemRepository
 				.GetByCondition(c => c.UserId == userProfile.Id)).ToList();
+			var mappedResult = _mapper.Map<IList<CartItemDto>>(getResult);
+			return mappedResult;
 		}
-		public async Task<CartItem?> GetUserItem(UserProfile userProfile, int itemId)
+		public async Task<CartItemDto?> GetUserItem(UserProfile userProfile, int itemId)
 		{
-			return (await _unitOfWork.Repositories.cartItemRepository
+			var getResult = (await _unitOfWork.Repositories.cartItemRepository
 				.GetByCondition(item => item.UserId == userProfile.Id && item.Id == itemId)).FirstOrDefault();
+			var mappedResult = _mapper.Map<CartItemDto>(getResult);
+			return mappedResult;
 		}
 		public async Task RemoveUserItem(UserProfile userProfile, int itemId)
 		{
-			var getItem = await GetUserItem(userProfile, itemId);
-			if (getItem is null)
+			var getResult = (await _unitOfWork.Repositories.cartItemRepository
+				.GetByCondition(item => item.UserId == userProfile.Id && item.Id == itemId)).FirstOrDefault();
+			//var getItem = await GetUserItem(userProfile, itemId);
+			if (getResult is null)
 				return;
-			await _unitOfWork.Repositories.cartItemRepository.Delete(getItem);
+			await _unitOfWork.Repositories.cartItemRepository.Delete(getResult);
 			await _unitOfWork.SaveChangesAsync();
+
 		}
-		public async Task<CartItem> AddUserItem(UserProfile userProfile, CartItemType type, int itemId)
+		public async Task<CartItemDto> AddUserItem(UserProfile userProfile, CartItemType type, int itemId)
 		{
 			var newItem = new CartItem()
 			{
@@ -57,22 +68,50 @@ namespace Services.Implementation
 			};
 			var result = await _unitOfWork.Repositories.cartItemRepository.Create(newItem);
 			await _unitOfWork.SaveChangesAsync();
-			return result;
+			var mappedResult = _mapper.Map<CartItemDto>(result);
+			return mappedResult;
 		}
-		public async Task<UserProfile?> GetUserProfile(int id)
+		public async Task<UserProfileDto?> GetUserProfile(int id)
 		{
-			return await _unitOfWork.Repositories.userProfileRepository.GetById(id);
+			var getResult = await _unitOfWork.Repositories.userProfileRepository.GetById(id);
+			var mappedResult = _mapper.Map<UserProfileDto>(getResult);
+			return mappedResult;
 		}
-		public async Task<UserProfile?> GetUserProfileByIdentity(int identityId)
+		public async Task<UserProfileDto?> GetUserProfileByIdentity(int identityId)
 		{
-			return (await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => u.IdentityId == identityId)).FirstOrDefault();
+			var getResult = (await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => u.IdentityId == identityId)).FirstOrDefault();
+			var mappedResult = _mapper.Map<UserProfileDto>(getResult);
+			return mappedResult;
 		}
-		public async Task<Result<UserProfile>> UpdateProfile(UserProfile userProfile, UpdateUserProfileDto updateUserProfileDto)
+		public async Task<Result<UserProfileDto>> UpdateProfile(int userProfileId, UpdateUserProfileDto updateUserProfileDto)
+		{
+			var error = new Error();
+			var getProfile = await GetUserProfileById(userProfileId);
+			if(getProfile is null)
+			{
+				error.ErrorMessage = "cannot find profile";
+				return Result<UserProfileDto>.Fail();
+			}
+			return await UpdateProfile(getProfile, updateUserProfileDto);
+		}
+		public async Task<Result<UserProfileDto>> UpdateProfile(UserProfile userProfile, UpdateUserProfileDto updateUserProfileDto)
 		{
 			_mapper.Map(updateUserProfileDto, userProfile);
 			await _unitOfWork.Repositories.userProfileRepository.Update(userProfile);
 			await _unitOfWork.SaveChangesAsync();
-			return Result<UserProfile>.Success(userProfile);
+			var mappedResult = _mapper.Map<UserProfileDto>(userProfile);
+			return Result<UserProfileDto>.Success(mappedResult);
+		}
+		public async Task<Result<string>> UpdateProfileImage(Stream filestream, string contentType, string fileName, int  userProfileId, CancellationToken cancellationToken = default)
+		{
+			var error = new Error();
+			var getProfile = await GetUserProfileById(userProfileId);
+			if (getProfile is null)
+			{
+				error.ErrorMessage = "cannot find profile";
+				return Result.Fail();
+			}
+			return await UpdateProfileImage(filestream,contentType,fileName,getProfile,cancellationToken);
 		}
 		public async Task<Result<string>> UpdateProfileImage(Stream filestream, string contentType, string fileName, UserProfile userProfile, CancellationToken cancellationToken = default)
 		{
@@ -114,6 +153,17 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 			return result ? Result.Success() : Result.Fail();
 		}
+		public async Task<Result<IList<TrackCommentDto>>> GetUserTrackComments(int userProfileId)
+		{
+			var getProfile = await GetUserProfileById(userProfileId);
+			if(getProfile is null)
+			{
+				var error = new Error();
+				error.ErrorMessage = "cannot found profile";
+				return Result<IList<TrackCommentDto>>.Fail();
+			}
+			return await GetUserTrackComments(getProfile);
+		}
 		public async Task<Result<IList<TrackCommentDto>>> GetUserTrackComments(UserProfile userProfile)
 		{
 			var error = new Error();
@@ -126,7 +176,7 @@ namespace Services.Implementation
 			var returnResult = _mapper.Map<IList<TrackCommentDto>>(getUserTrackComments);
 			return Result<IList<TrackCommentDto>>.Success(returnResult);
 		}
-		public async Task<Result<TrackCommentDto>> CreateComment(UserProfile userProfile,CreateTrackCommentDto createTrackCommentDto, int? replyToComment_Id = null)
+		public async Task<Result<TrackCommentDto>> CreateComment(UserProfile userProfile, CreateTrackCommentDto createTrackCommentDto, int? replyToComment_Id = null)
 		{
 			var createResult = await _commentService.CreateTrackComment(userProfile, createTrackCommentDto);
 			var mapResponse = _mapper.Map<TrackCommentDto>(createResult);
@@ -136,7 +186,11 @@ namespace Services.Implementation
 		{
 			if (userCommentId == null)
 				return Result.Fail();
-			return  await _commentService.RemoveComment(userProfile,userCommentId);
+			return await _commentService.RemoveComment(userProfile, userCommentId);
+		}
+		private async Task<UserProfile?> GetUserProfileById(int userProfileId)
+		{
+			return  await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
 		}
 	}
 }

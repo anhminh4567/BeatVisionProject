@@ -20,9 +20,9 @@ namespace BeatVisionProject.Controllers
 	public class ManageIdentityController : ControllerBase
 	{
 		private readonly AppUserManager _manageUserService;
-		private readonly UserIdentityServices _userIdentityService;
+		private readonly IUserIdentityService _userIdentityService;
 
-		public ManageIdentityController(AppUserManager manageUserService, UserIdentityServices userIdentityService)
+		public ManageIdentityController(AppUserManager manageUserService, IUserIdentityService userIdentityService)
 		{
 			_manageUserService = manageUserService;
 			_userIdentityService = userIdentityService;
@@ -180,11 +180,25 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(confirmResult.Error.StatusCode, confirmResult.Error);
 			return Ok("email confirmed");
 		}
-		[HttpGet("get-user")]
-		public async Task<IActionResult> GetUser(int id, CancellationToken cancellationToken = default)
+		[HttpGet("get-useridentity")]
+		public async Task<IActionResult> GetUserIdentity(int id, CancellationToken cancellationToken = default)
 		{
-			//var result = await _unitOfWork.Repositories.customIdentityUser.GetById(id);
-			return Ok();
+			var result = await _userIdentityService.GetUserIdentity(id, true);
+			if(result.isSuccess is false)
+			{
+				return StatusCode(result.Error.StatusCode,result.Error);
+			}
+			return Ok(result.Value);
+		}
+		[HttpGet("get-user-in-role")]
+		public async Task<IActionResult> GetUserIdentityInRole(int roleId, CancellationToken cancellationToken = default)
+		{
+			var result = await _userIdentityService.GetUsersInRole(roleId);
+			if (result.isSuccess is false)
+			{
+				return StatusCode(result.Error.StatusCode, result.Error);
+			}
+			return Ok(result.Value);
 		}
 	}
 }

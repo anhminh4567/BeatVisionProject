@@ -48,15 +48,14 @@ namespace Shared.RequestDto
     public class CreateRoleDto
     {
         [Required]
-        public int RoleId { get; set; }
-        [Required]
         public string RoleName { get; set; }
         [Required]
         public string Description { get; set; }
     }
     public class UpdateRoleDto : CreateRoleDto
     {
-
+        [Required]
+        public int RoleId { get; set; }
     }
     public class ChangePasswordDto
     {

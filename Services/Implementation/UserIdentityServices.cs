@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace Services.Implementation
 {
-	public class UserIdentityServices : IUserIdentityService
+	public partial class UserIdentityServices : IUserIdentityService
 	{
 		public UserManager<CustomIdentityUser> UserManager { get; set; }
 		public RoleManager<CustomIdentityRole> RoleManager { get; set; }
@@ -34,8 +35,9 @@ namespace Services.Implementation
 		private readonly AppsettingBinding _settings;
 		private readonly JwtSection _jwtSettings;
 		private readonly IMyEmailService _mailServices;
+		private readonly IMapper _mapper;
 
-		public UserIdentityServices(UserManager<CustomIdentityUser> userManager, RoleManager<CustomIdentityRole> roleManager, SignInManager<CustomIdentityUser> signinManager, ISecurityTokenServices securityTokenServices, IUnitOfWork unitOfWork, AppsettingBinding settings, IMyEmailService mailServices)
+		public UserIdentityServices(UserManager<CustomIdentityUser> userManager, RoleManager<CustomIdentityRole> roleManager, SignInManager<CustomIdentityUser> signinManager, ISecurityTokenServices securityTokenServices, IUnitOfWork unitOfWork, AppsettingBinding settings,  IMyEmailService mailServices, IMapper mapper)
 		{
 			UserManager = userManager;
 			RoleManager = roleManager;
@@ -44,6 +46,8 @@ namespace Services.Implementation
 			_unitOfWork = unitOfWork;
 			_settings = settings;
 			_mailServices = mailServices;
+			_mapper = mapper;
+
 			_jwtSettings = _settings.JwtSection;
 		}
 
@@ -112,7 +116,7 @@ namespace Services.Implementation
 			catch (Exception ex)
 			{
 				await _unitOfWork.RollBackAsync();
-				error.StatusCode= (int)HttpStatusCode.InternalServerError;
+				error.StatusCode = (int)HttpStatusCode.InternalServerError;
 				error.isException = true;
 				error.ErrorMessage = ex.Message;
 				return Result<TokenResponseDto>.Fail(error);
@@ -335,8 +339,8 @@ namespace Services.Implementation
 				return Result.Fail();
 			}
 			var deleteResult = await RoleManager.DeleteAsync(getRole);
-			if (deleteResult.Succeeded is false) 
-			{ 
+			if (deleteResult.Succeeded is false)
+			{
 				return Result.Fail();
 			}
 			return Result.Success();
@@ -425,4 +429,50 @@ namespace Services.Implementation
 
 
 	}
+}
+namespace Services.Implementation
+{
+	public partial class UserIdentityServices
+	{
+		public async Task<Result<CustomIdentityUserDto>> GetUserIdentity(int userId, bool isIncludeDetail = false)
+		{
+			var error = new Error();
+			CustomIdentityUser getUser;
+			if (isIncludeDetail)
+			{
+				getUser = await _unitOfWork.Repositories.customIdentityUser.GetByIdInclude(userId, "UserClaims,Roles,UserLogins,UserTokens,UserProfile");
+			}
+			else
+			{
+				getUser = await _unitOfWork.Repositories.customIdentityUser.GetById(userId);
+			}
+			if (getUser is null)
+			{
+				error.ErrorMessage = "cannot find user identity with this id, might not have login";
+				return Result<CustomIdentityUserDto>.Fail(error);
+			}
+			var mappedValue = _mapper.Map<CustomIdentityUserDto>(getUser);
+			return Result<CustomIdentityUserDto>.Success(mappedValue);
+		}
+		public async Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId)
+		{
+			var error = new Error();
+			if (roleId == null || roleId <= 0)
+			{
+				error.ErrorMessage = "role id is not correct ";
+				return Result<IList<CustomIdentityUserDto>>.Fail(error);
+			}
+			var getAllUserInRole = (await _unitOfWork.Repositories.customIdentityRole.GetByIdInclude(roleId, "Users"))?.Users;
+			if (getAllUserInRole is null)
+			{
+				error.ErrorMessage = "fail to get user by id, somethin wrong ";
+				error.StatusCode = StatusCodes.Status500InternalServerError;
+				return Result<IList<CustomIdentityUserDto>>.Fail(error);
+			}
+			var mappedResult = _mapper.Map<IList<CustomIdentityUserDto>>(getAllUserInRole);
+			return Result<IList<CustomIdentityUserDto>>.Success(mappedResult);
+
+		}
+	}
+
 }

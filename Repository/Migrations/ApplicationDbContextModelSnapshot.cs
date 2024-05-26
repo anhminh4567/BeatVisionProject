@@ -278,7 +278,7 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BlobFileData");
+                    b.ToTable("BlobFileData", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.CartItem", b =>
@@ -303,7 +303,7 @@ namespace Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("CartItems");
+                    b.ToTable("CartItems", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.Comment", b =>
@@ -342,7 +342,7 @@ namespace Repository.Migrations
 
                     b.HasIndex("ReplyToCommentId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
 
                     b.HasDiscriminator<string>("CommentType");
 
@@ -394,7 +394,7 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Coupons");
+                    b.ToTable("Coupons", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.Message", b =>
@@ -434,7 +434,7 @@ namespace Repository.Migrations
 
                     b.HasIndex("CreatorId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.Notification", b =>
@@ -455,7 +455,7 @@ namespace Repository.Migrations
 
                     b.HasIndex("ReceiverId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.Tag", b =>
@@ -472,7 +472,7 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Tags");
+                    b.ToTable("Tags", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.Track", b =>
@@ -538,7 +538,7 @@ namespace Repository.Migrations
                     b.HasIndex("AudioBlobId")
                         .IsUnique();
 
-                    b.ToTable("Tracks");
+                    b.ToTable("Tracks", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.TrackLicense", b =>
@@ -580,7 +580,7 @@ namespace Repository.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TrackLicenses");
+                    b.ToTable("TrackLicenses", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.UserProfile", b =>
@@ -637,7 +637,7 @@ namespace Repository.Migrations
                     b.HasIndex("IdentityId")
                         .IsUnique();
 
-                    b.ToTable("UserProfiles");
+                    b.ToTable("UserProfiles", (string)null);
                 });
 
             modelBuilder.Entity("TagTrack", b =>
@@ -652,7 +652,7 @@ namespace Repository.Migrations
 
                     b.HasIndex("TracksId");
 
-                    b.ToTable("TagTrack");
+                    b.ToTable("TagTrack", (string)null);
                 });
 
             modelBuilder.Entity("TrackTrackLicense", b =>
@@ -667,7 +667,7 @@ namespace Repository.Migrations
 
                     b.HasIndex("TracksRelatedId");
 
-                    b.ToTable("TrackTrackLicense");
+                    b.ToTable("TrackTrackLicense", (string)null);
                 });
 
             modelBuilder.Entity("UserProfileUserProfile", b =>
@@ -682,7 +682,7 @@ namespace Repository.Migrations
 
                     b.HasIndex("FollowingsId");
 
-                    b.ToTable("UserProfileUserProfile");
+                    b.ToTable("UserProfileUserProfile", (string)null);
                 });
 
             modelBuilder.Entity("Shared.Models.TrackComment", b =>

@@ -15,11 +15,26 @@ namespace Shared.MapperProfiles
 	{
 		public Profiles() 
 		{
+			CreateMap<CustomIdentityUser, CustomIdentityUserDto>();
+			CreateMap<CustomIdentityRole, CustomIdentityRoleDto>();
+			CreateMap<CustomIdentityRoleClaim, CustomIdentityRoleClaimDto>();
+			CreateMap<CustomIdentityUserClaims, CustomIdentityUserClaimsDto>();
+			CreateMap<CustomIdentityUserLogins, CustomIdentityUserLoginsDto>();
+			CreateMap<CustomIdentityUserToken, CustomIdentityUserTokenDto>();
+
 			CreateMap<UpdateUserProfileDto, UserProfile>();
 			CreateMap<Track, TrackResponseDto>();
 			CreateMap<Tag, TagDto>();
 			CreateMap<TrackLicense, TrackLicenseDto>();
 			CreateMap<TrackComment, TrackCommentDto>();
+			CreateMap<UserProfile,UserProfileDto >();
+			CreateMap<CartItem,CartItemDto >();
+			CreateMap<Notification, NotificationDto >();
+			CreateMap<Message, MessageDto>();
+			//CreateMap<, >();
+			
+
+
 		}
 	}
 }

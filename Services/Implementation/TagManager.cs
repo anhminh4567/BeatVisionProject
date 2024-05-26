@@ -1,4 +1,5 @@
-﻿using Repository.Interface;
+﻿using AutoMapper;
+using Repository.Interface;
 using Shared.Helper;
 using Shared.Models;
 using Shared.RequestDto;
@@ -14,21 +15,25 @@ namespace Services.Implementation
 	public class TagManager
 	{
 		private readonly IUnitOfWork _unitOfWork;
+		private readonly IMapper _mapper;
 
-		public TagManager(IUnitOfWork unitOfWork)
+		public TagManager(IUnitOfWork unitOfWork, IMapper mapper)
 		{
 			_unitOfWork = unitOfWork;
+			_mapper = mapper;
 		}
-		public async Task<Tag> Create(CreateTagDto createTagDto)
+
+		public async Task<TagDto> Create(CreateTagDto createTagDto)
 		{
 			var result =  await _unitOfWork.Repositories.tagRepository.Create(new Tag() 
 			{ 
 				Name = createTagDto.Name
 			});
 			await _unitOfWork.SaveChangesAsync();
-			return result;
+			var mappedResult = _mapper.Map<TagDto>(result);	
+			return mappedResult;
 		} 
-		public async Task<Tag> Remove(int tagId)
+		public async Task<TagDto> Remove(int tagId)
 		{
 			var getTag = await _unitOfWork.Repositories.tagRepository.GetById(tagId);
 			if(getTag == null) {
@@ -36,11 +41,12 @@ namespace Services.Implementation
 			}
 			var result= await _unitOfWork.Repositories.tagRepository.Delete(getTag);
 			await _unitOfWork.SaveChangesAsync();
-			return result;
+			var mappedResult = _mapper.Map<TagDto>(result);
+			return mappedResult;
 		}
-		public async Task<IList<Tag>> GetAll()
+		public async Task<IList<TagDto>> GetAll()
 		{
-			return (await _unitOfWork.Repositories.tagRepository.GetAll()).ToList();
+			return _mapper.Map<IList<TagDto>>( ( await _unitOfWork.Repositories.tagRepository.GetAll()).ToList() );
 		}
 	}
 }

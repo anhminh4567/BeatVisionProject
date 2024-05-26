@@ -7,6 +7,7 @@ using Shared.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -64,10 +65,54 @@ namespace Repository
             builder.Entity<CustomIdentityUserClaims>().ToTable("UserClaims");
             builder.Entity<CustomIdentityUserLogins>().ToTable("UserLogins");
             builder.Entity<CustomIdentityUserToken>().ToTable("UserToken");
+			builder.Entity<CustomIdentityUser>(b =>
+			{
+				// Each User can have many UserClaims
+				b.HasMany(e => e.UserClaims)
+					.WithOne()
+					.HasForeignKey(uc => uc.UserId)
+					.IsRequired();
 
+				// Each User can have many UserLogins
+				b.HasMany(e => e.UserLogins)
+					.WithOne()
+					.HasForeignKey(ul => ul.UserId)
+					.IsRequired();
+
+				// Each User can have many UserTokens
+				b.HasMany(e => e.UserTokens)
+					.WithOne()
+					.HasForeignKey(ut => ut.UserId)
+					.IsRequired();
+
+                // Each User can have many entries in the UserRole join table
+                //b.HasMany(e => e.UserRoles)
+                //	.WithOne(e => e.User)
+                //	.HasForeignKey(ur => ur.UserId)
+                //	.IsRequired();
+
+                // Each User can have many role
+                b.HasMany(e => e.Roles)
+                .WithMany(r => r.Users)
+                .UsingEntity<CustomIdentityUserRole>();
+			});
+			builder.Entity<CustomIdentityRole>(b =>
+			{
+				// Each Role can have many entries in the UserRole join table
+				//b.HasMany(e => e.UserRoles)
+				//	.WithOne(e => e.Role)
+				//	.HasForeignKey(ur => ur.RoleId)
+				//	.IsRequired();
+
+				// Each Role can have many associated RoleClaims
+				b.HasMany(e => e.RoleClaims)
+					.WithOne(e => e.Role)
+					.HasForeignKey(rc => rc.RoleId)
+					.IsRequired();
+			});
 			//Application Configuration
 			//Application Configuration
-			
+
 			builder.Entity<UserProfile>(entity =>
             {
 				entity.HasOne(u => u.IdentityUser)

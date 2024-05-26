@@ -3,6 +3,7 @@ using Services.Implementation;
 using Shared.ConfigurationBinding;
 using Shared.Models;
 using Shared.RequestDto;
+using Shared.ResponseDto;
 
 namespace BeatVisionProject.Controllers
 {
@@ -20,12 +21,12 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<IList<Tag>>> GetAll()
+		public async Task<ActionResult<IList<TagDto>>> GetAll()
 		{
 			return Ok(await _tagManager.GetAll());
 		}
 		[HttpPost]
-		public async Task<ActionResult<Tag?>> CreateTag(CreateTagDto createTagDto)
+		public async Task<ActionResult<TagDto?>> CreateTag(CreateTagDto createTagDto)
 		{
 			var createResult = await _tagManager.Create(createTagDto);
 			if(createResult == null)

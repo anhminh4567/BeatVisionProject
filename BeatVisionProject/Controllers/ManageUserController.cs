@@ -20,31 +20,26 @@ namespace BeatVisionProject.Controllers
 			_appUserManager = appUserManager;
 			_appsettings = appsettings;
 		}
-		[HttpGet("{id}")]
-		public async Task<ActionResult> GetUserProfile(int profileId)
+		[HttpGet("{profileId}")]
+		public async Task<ActionResult> GetUserProfile([FromRoute]int profileId)
 		{
 			var getProfile = await _appUserManager.GetUserProfile(profileId);
 			if (getProfile is null)
 				return BadRequest();
-			return Ok();
+			return Ok(getProfile);
 		}
 		[HttpGet("identity/{identityId}")]
-		public async Task<ActionResult> GetUserProfileByIdentity(int identityId)
+		public async Task<ActionResult> GetUserProfileByIdentity([FromRoute] int identityId)
 		{
 			var getProfile = await _appUserManager.GetUserProfileByIdentity(identityId);
 			if (getProfile is null)
 				return BadRequest();
-			return Ok();
+			return Ok(getProfile);
 		}
-		[HttpPut("{id}")]
-		public async Task<ActionResult> UpdateUserProfile([FromRoute] int id,[FromBody] UpdateUserProfileDto updateUserProfileDto)
+		[HttpPut("{profileId}")]
+		public async Task<ActionResult> UpdateUserProfile([FromRoute] int profileId, [FromBody] UpdateUserProfileDto updateUserProfileDto)
 		{
-			var getUserProfile = await _appUserManager.GetUserProfile(id);
-			if(getUserProfile is null)
-			{
-				return BadRequest();
-			}
-			var updateResult = await _appUserManager.UpdateProfile(getUserProfile,updateUserProfileDto);
+			var updateResult = await _appUserManager.UpdateProfile(profileId, updateUserProfileDto);
 			if(updateResult.isSuccess is false)
 			{
 				return StatusCode(updateResult.Error.StatusCode, updateResult.Error);
@@ -53,10 +48,10 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpPut("profile-image/{id}")]
-		public async Task<ActionResult> UpdateProfileImage(int id,UpdateProfileImageDto updateProfileImageDto)
+		public async Task<ActionResult> UpdateProfileImage([FromRoute] int id,UpdateProfileImageDto updateProfileImageDto)
 		{
 			var getFile = updateProfileImageDto.imageFile;
-			var getProfile = await _appUserManager.GetUserProfile(id);
+			//var getProfile = await _appUserManager.GetUserProfile(id);
 			var fileName = updateProfileImageDto.imageFile.FileName;
 			var getExtension = FileHelper.ExtractFileExtention(fileName);
 			if(getExtension.isSuccess is false)
@@ -69,7 +64,7 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(isExtensionAllowed.Error.StatusCode, isExtensionAllowed.Error);
 			}
 			using Stream imageStream = getFile.OpenReadStream();
-			var updateResult = await _appUserManager.UpdateProfileImage(imageStream, getFile.ContentType,getFile.FileName,getProfile);
+			var updateResult = await _appUserManager.UpdateProfileImage(imageStream, getFile.ContentType,getFile.FileName,id);
 			if(updateResult.isSuccess is false)
 			{
 				return StatusCode(updateResult.Error.StatusCode, updateResult.Error);
@@ -79,8 +74,7 @@ namespace BeatVisionProject.Controllers
 		[HttpGet("get-track-comment")]
 		public async Task<ActionResult> GetUserTrackComment([FromQuery]int userId)
 		{
-			var getuserProfile = await _appUserManager.GetUserProfile(userId);
-			var getUserComments = await _appUserManager.GetUserTrackComments(getuserProfile);
+			var getUserComments = await _appUserManager.GetUserTrackComments(userId);
 			return Ok(getUserComments);
 		}
 	}
