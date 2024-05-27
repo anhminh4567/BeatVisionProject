@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace Shared.ResponseDto
 {
+
 	public class CustomIdentityUserDto
 	{
 		public int Id { get; set; }
@@ -18,7 +19,7 @@ namespace Shared.ResponseDto
 		public bool EmailConfirmed { get;set; }
 		public DateTime LockoutEnd { get; set; }
 		public int AccessFailedCount { get;set; }
-		public UserProfile? UserProfile { get; set; } // Reference navigation to dependent
+		public UserProfileDto? UserProfile { get; set; } // Reference navigation to dependent
 		public virtual IList<CustomIdentityUserTokenDto> UserTokens { get; set; } = new List<CustomIdentityUserTokenDto>();
 		public virtual IList<CustomIdentityUserClaimsDto> UserClaims { get; set; } = new List<CustomIdentityUserClaimsDto>();
 		public virtual IList<CustomIdentityRoleDto> Roles { get; set; } = new List<CustomIdentityRoleDto>();
