@@ -13,7 +13,7 @@ namespace Shared.RequestDto
     }
     public class RegisterDto
     {
-        [DataType(DataType.Password)]
+        [DataType(DataType.EmailAddress)]
         [Required]
         [NotNull]
         public string Email { get; set; }

@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Services.Implementation
 {
-	public class TrackManager
+	public partial class TrackManager
 	{
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly AudioFileServices _audioFileService;
@@ -33,8 +33,9 @@ namespace Services.Implementation
 		private readonly AppsettingBinding _appSettings;
 		private readonly CommentService _commentService;
 		private readonly IMapper _mapper;
+		private readonly LicenseFileService _licenseFileService;
 
-		public TrackManager(IUnitOfWork unitOfWork, AudioFileServices audioFileService, ImageFileServices imageFileService, IMyEmailService mailServices, TagManager tagService, AppsettingBinding appSettings, CommentService commentService, IMapper mapper)
+		public TrackManager(IUnitOfWork unitOfWork, AudioFileServices audioFileService, ImageFileServices imageFileService, IMyEmailService mailServices, TagManager tagService, AppsettingBinding appSettings, CommentService commentService, IMapper mapper, LicenseFileService licenseFileService)
 		{
 			_unitOfWork = unitOfWork;
 			_audioFileService = audioFileService;
@@ -44,12 +45,8 @@ namespace Services.Implementation
 			_appSettings = appSettings;
 			_commentService = commentService;
 			_mapper = mapper;
+			_licenseFileService = licenseFileService;
 		}
-
-
-
-
-
 		//create a track will always be private and not for sales, not until the publish is made will the track be decided to be public or not
 
 		public async Task<Result> UploadTrack(CreateTrackDto createTrackDto, CancellationToken cancellationToken = default)
@@ -476,5 +473,108 @@ namespace Services.Implementation
 			var getComments = _commentService.GetCommentReplys(getTrackComment);
 			return _mapper.Map<IList<TrackCommentDto>>(getComments);
 		}
+
 	}
+}
+namespace Services.Implementation
+{
+	public partial class TrackManager {
+		public async Task<IList<TrackLicenseDto>> GetTrackLicensePaging(int start, int amount)
+		{
+			var getReuslt = await _unitOfWork.Repositories.trackLicenseRepository.GetRange(start, amount);
+			return _mapper.Map<IList<TrackLicenseDto>>(getReuslt);
+		}
+		public async Task<TrackLicenseDto> GetTrackLicense(int licenseId)
+		{
+			var getReuslt = await _unitOfWork.Repositories.trackLicenseRepository.GetById(licenseId);
+			return _mapper.Map<TrackLicenseDto>(getReuslt);
+		}
+		public async Task<Result<BlobFileResponseDto>> DownloadTrackLicense(int licenseId)
+		{
+			var error = new Error();
+			var getReuslt = await _unitOfWork.Repositories.trackLicenseRepository.GetById(licenseId);
+			if (getReuslt is null)
+			{
+				error.ErrorMessage = "cant find license";
+				return Result<BlobFileResponseDto>.Fail(error);
+			}
+			return await _licenseFileService.DownloadLicensePdf(getReuslt);
+
+		}
+
+		public async Task<Result<TrackLicenseDto>> AddTrackLicense(CreateTrackLicenseDto createTrackLicenseDto, Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
+		{
+			var error = new Error();
+			var newLicense = new TrackLicense();
+			newLicense.StreamLimit = createTrackLicenseDto.StreamLimit is null ? -1 : createTrackLicenseDto.StreamLimit.Value;
+			newLicense.DistributionLimit = createTrackLicenseDto.DistributionLimit is null ? -1 : createTrackLicenseDto.DistributionLimit.Value;
+			newLicense.DefaultPrice = 0;
+			newLicense.CurrentPrice = 0;
+			newLicense.IsMP3Supported = true;
+			newLicense.IsWAVSupported = true;
+			newLicense.LicenceName = createTrackLicenseDto.LicenceName;
+			var uploadResult = await _licenseFileService.UploadLicenseFile(fileStream, fileName, contentType, cancellationToken);
+			if (uploadResult.isSuccess is false)
+			{
+				return Result<TrackLicenseDto>.Fail(uploadResult.Error);
+			}
+			var getRelativePath = uploadResult.Value;
+			newLicense.LicensePdfBlobPath = getRelativePath;
+			var createResult = await _unitOfWork.Repositories.trackLicenseRepository.Create(newLicense);
+			await _unitOfWork.SaveChangesAsync();
+			if (createResult is null)
+			{
+				error.ErrorMessage = "cant create now, error server";
+				return Result<TrackLicenseDto>.Fail(error);
+			}
+			var mappedResult = _mapper.Map<TrackLicenseDto>(createResult);
+			return Result<TrackLicenseDto>.Success(mappedResult);
+		}
+		public async Task<Result> RemoveTrackLicense(int licenseId)
+		{
+			var getTrackLicense = await _unitOfWork.Repositories.trackLicenseRepository.GetById(licenseId);
+			if (getTrackLicense is null)
+			{
+				return Result.Fail();
+			}
+			await _unitOfWork.Repositories.trackLicenseRepository.Delete(getTrackLicense);
+			await _unitOfWork.SaveChangesAsync();
+			var removeFileResult = await _licenseFileService.DeleteLicenseFile(getTrackLicense.LicensePdfBlobPath);
+			//if(removeFileResult.isSuccess is false)
+			//{
+			//	return Result.Fail();
+			//}
+			return Result.Success();
+		}
+		public async Task<Result> AddTrackToLicense(int trackId, int licenseId)
+		{
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
+			var getLicense = await _unitOfWork.Repositories.trackLicenseRepository.GetById(licenseId);
+			if (getTrack is null || getLicense is null)
+			{
+				return Result.Fail();
+			}
+			getTrack.Licenses.Add(getLicense);
+			await _unitOfWork.SaveChangesAsync();
+			return Result.Success();
+		}
+		public async Task<Result> RemoveTrackFromLicense(int trackId, int licenseId)
+		{
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
+			var getLicense = await _unitOfWork.Repositories.trackLicenseRepository.GetById(licenseId);
+			if (getTrack is null || getLicense is null)
+			{
+				return Result.Fail();
+			}
+			var removeResult = getTrack.Licenses.Remove(getLicense);
+			if (removeResult is false)
+			{
+				return Result.Fail();
+			}
+			await _unitOfWork.SaveChangesAsync();
+			return Result.Success();
+		}
+
+	}
+
 }

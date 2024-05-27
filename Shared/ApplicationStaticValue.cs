@@ -23,6 +23,7 @@ namespace Shared
         public static readonly string BlobImageDirectory = "image";// this can be put whatever, no need for user or application specify
 		public static readonly string BlobAudioDirectory = "audio";// this require extra subfolder, user, application, or whatever
         public static readonly string BlobPaidDirectory = "paid";
+        public static readonly string BlobLicenseDirectory = "license";
 
         public static readonly string ContentTypeWav = "audio/wav";
         public static readonly string ContentTypeMp3 = "audio/mpeg";
@@ -31,6 +32,7 @@ namespace Shared
 		// PRIVATE CONTAINER:
 		// - PAID       : audio/{userid}/paid/{filenameGen.mp3/wav}  
 		// - PRIVATE    : audio/{userid}/{filenameGen.mp3/wav}
+        // - LICENSE    : license/{filenameNOGEN.pdf}
 
 		// PUBLIC CONTAINER:
 		// - PUBLIC     : audio/{userid}/{filenameGen.mp3}

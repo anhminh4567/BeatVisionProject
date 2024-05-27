@@ -38,5 +38,6 @@ namespace Services.Interface
         Task<Result<CustomIdentityUserDto>> GetUserIdentity(int userId, bool isIncludeDetail = false);
 
         Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId);
+        Task<Result<IList<CustomIdentityUserDto>>> GetUsersPaging(int start, int amount);
 	}
 }

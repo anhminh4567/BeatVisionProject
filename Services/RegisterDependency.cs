@@ -50,6 +50,7 @@ namespace Services
 			services.AddScoped<AudioFileServices>();
             services.AddScoped<TagManager>();
 			services.AddScoped<TrackManager>();
+            services.AddScoped<LicenseFileService>();
 			services.AddAuthentication(opt => 
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

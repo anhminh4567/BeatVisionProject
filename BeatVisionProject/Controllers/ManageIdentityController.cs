@@ -200,5 +200,15 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok(result.Value);
 		}
+		[HttpGet("get-users-paging")]
+		public async Task<ActionResult> GetUsers([FromQuery] int start, [FromQuery]int amount , CancellationToken cancellationToken = default)
+		{
+			var result = await _userIdentityService.GetUsersPaging(start, amount);
+			if(result.isSuccess is false)
+			{
+				return StatusCode(result.Error.StatusCode, result.Error);
+			}
+			return Ok(result.Value);
+		}
 	}
 }

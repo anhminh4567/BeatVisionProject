@@ -471,7 +471,19 @@ namespace Services.Implementation
 			}
 			var mappedResult = _mapper.Map<IList<CustomIdentityUserDto>>(getAllUserInRole);
 			return Result<IList<CustomIdentityUserDto>>.Success(mappedResult);
-
+		}
+		public async Task<Result<IList<CustomIdentityUserDto>>> GetUsersPaging(int start, int amount)
+		{
+			var error = new Error();
+			var getUsers = (await _unitOfWork.Repositories.customIdentityUser.GetByCondition(null, null, "", start, amount)).ToList();
+			if (getUsers is null)
+			{
+				error.ErrorMessage = "fail to get user by id, somethin wrong ";
+				error.StatusCode = StatusCodes.Status500InternalServerError;
+				return Result<IList<CustomIdentityUserDto>>.Fail(error);
+			}
+			var mappedResult = _mapper.Map<IList<CustomIdentityUserDto>>(getUsers);
+			return Result<IList<CustomIdentityUserDto>>.Success(mappedResult);
 		}
 	}
 
