@@ -67,9 +67,10 @@ namespace Services
                     ValidateLifetime = true,
                     ValidIssuers = jwtSection.Issuers,
                     ValidAudiences = jwtSection.Audiences,
-                    RoleClaimType = "role",
+                    RoleClaimType = ApplicationStaticValue.UserRoleClaimType,
+                    NameClaimType = ApplicationStaticValue.UsernameClaimType,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSection.Key)),
-                };
+				};
                 config.SaveToken = true;
             }).AddGoogle(ApplicationStaticValue.GoogleScheme, opt =>
             {

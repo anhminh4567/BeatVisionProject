@@ -484,6 +484,10 @@ namespace Services.Implementation
 			var getReuslt = await _unitOfWork.Repositories.trackLicenseRepository.GetRange(start, amount);
 			return _mapper.Map<IList<TrackLicenseDto>>(getReuslt);
 		}
+		public int GetTotalTrackCount()
+		{
+			return _unitOfWork.Repositories.trackRepository.COUNT;
+		}
 		public async Task<TrackLicenseDto> GetTrackLicense(int licenseId)
 		{
 			var getReuslt = await _unitOfWork.Repositories.trackLicenseRepository.GetById(licenseId);

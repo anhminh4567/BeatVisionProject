@@ -190,6 +190,16 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok(result.Value);
 		}
+		[HttpGet("get-useridentity-claim-from-token")]
+		public async Task<IActionResult> GetUserIdentity(string accessToken, CancellationToken cancellationToken = default)
+		{
+			var result = await _userIdentityService.GetUserIdentity(accessToken, true);
+			if (result.isSuccess is false)
+			{
+				return StatusCode(result.Error.StatusCode, result.Error);
+			}
+			return Ok(result.Value);
+		}
 		[HttpGet("get-user-in-role")]
 		public async Task<IActionResult> GetUserIdentityInRole(int roleId, CancellationToken cancellationToken = default)
 		{
@@ -210,5 +220,6 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok(result.Value);
 		}
+		
 	}
 }

@@ -8,6 +8,7 @@ using Shared.ResponseDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -36,8 +37,9 @@ namespace Services.Interface
         Task<Result> ConfirmEmailToken(string userId, string emailToken);
 
         Task<Result<CustomIdentityUserDto>> GetUserIdentity(int userId, bool isIncludeDetail = false);
+		Task<Result<IList<Claim>>> GetUserIdentity(string accessToken, bool isIncludeDetail = false);
 
-        Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId);
+		Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId);
         Task<Result<IList<CustomIdentityUserDto>>> GetUsersPaging(int start, int amount);
 	}
 }

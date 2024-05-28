@@ -9,6 +9,7 @@ namespace Repository.Interface
 {
     public interface IRepositoryBase<T> where T : class
     {
+        int COUNT { get;  }
         Task<IEnumerable<T>> GetAll();
         Task<IEnumerable<T>> GetByCondition(Expression<Func<T, bool>> expression = null,
             Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null,

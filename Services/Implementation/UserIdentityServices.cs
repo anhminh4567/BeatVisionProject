@@ -374,6 +374,7 @@ namespace Services.Implementation
 			var claims = new List<Claim>();
 			claims.Add(new Claim(ApplicationStaticValue.MailClaimType, user.Email));
 			claims.Add(new Claim(ApplicationStaticValue.UserIdClaimType, user.Id.ToString()));
+			claims.Add(new Claim(ApplicationStaticValue.UsernameClaimType, user.UserName));
 			foreach (var role in RoleNames)
 			{
 				claims.Add(new Claim(ApplicationStaticValue.UserRoleClaimType, role));
@@ -453,6 +454,13 @@ namespace Services.Implementation
 			}
 			var mappedValue = _mapper.Map<CustomIdentityUserDto>(getUser);
 			return Result<CustomIdentityUserDto>.Success(mappedValue);
+		}
+		public async Task<Result<IList<Claim>>> GetUserIdentity(string accessToken, bool isIncludeDetail = false)
+		{
+			var error = new Error();
+			var getIdentityFromToken = _securityTokenServices.GetPrincipalFromExpiredToken(accessToken);
+			var getClaims = getIdentityFromToken.Claims.ToList();
+			return Result<IList<Claim>>.Success(getClaims);
 		}
 		public async Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId)
 		{

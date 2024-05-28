@@ -15,10 +15,12 @@ namespace Repository.Implementation
 	{
 		internal ApplicationDbContext _dbcontext;
 		internal DbSet<T> _dbSet;
+		public int COUNT { get; }
 		public RepositoryBase(ApplicationDbContext context)
 		{
 			_dbcontext = context;
 			_dbSet = _dbcontext.Set<T>();
+			COUNT = _dbSet.Count();
 		}
 		public async Task<IEnumerable<T>> GetAll()
 		{
