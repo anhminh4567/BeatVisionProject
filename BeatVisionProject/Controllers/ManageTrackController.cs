@@ -45,14 +45,14 @@ namespace BeatVisionProject.Controllers
 			return File(getResult.Value.Stream, getResult.Value.ContentType, true);
 		}
 		[HttpGet("get-range")]
-		public async Task<ActionResult<IList<PagingResponseDto<IList<TrackResponseDto>>>>> GetTrackRange([FromQuery] int currentPage)
+		public async Task<ActionResult<IList<PagingResponseDto<IList<TrackResponseDto>>>>> GetTrackRange([FromQuery] int currentPage, [FromQuery] int amount = 10)
 		{
-			var trueStartPosition = currentPage * AmountPerPage;
-			var amountToTake = AmountPerPage;
+			var trueStartPosition = currentPage * amount;
+			var amountToTake = amount;
 			var totalTrackCount = _trackManager.GetTotalTrackCount();
 			var response = new PagingResponseDto<IList<TrackResponseDto>>();
 			response.TotalCount= totalTrackCount;
-			response.Value = await _trackManager.GetTracksRange(currentPage, AmountPerPage);
+			response.Value = await _trackManager.GetTracksRange(trueStartPosition, amountToTake);
 			return Ok( response);
 		}
 		[HttpGet("get-detail/{trackId}")]
