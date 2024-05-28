@@ -3,6 +3,7 @@ using Services;
 using Shared.ConfigurationBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 internal class Program
 {
 	private static void Main(string[] args)
@@ -24,11 +25,16 @@ internal class Program
 		}
 
 		builder.Services.AddSingleton(appsettingsBinding);
-		builder.Services.AddControllers().AddNewtonsoftJson(options =>
-		{
-			options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-			// You can add other settings here if needed
-		});
+		builder.Services.AddControllers()
+			.AddNewtonsoftJson(options =>
+			{
+				options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+				options.SerializerSettings.ContractResolver = new DefaultContractResolver
+				{
+					NamingStrategy = new DefaultNamingStrategy()
+				};
+				// You can add other settings here if needed
+			});
 		// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 		builder.Services.AddEndpointsApiExplorer();
 		builder.Services.AddSwaggerGen(opt =>
@@ -58,6 +64,15 @@ internal class Program
 				}
 					});
 		});
+		builder.Services.AddCors(opt =>
+		{
+			opt.AddDefaultPolicy((config) =>
+			{
+				config.AllowAnyHeader();
+				config.AllowAnyOrigin();
+				config.AllowAnyOrigin();
+			});
+		});
 		builder.Services.AddServicesLayer(appsettingsBinding);
 
 		//builder.Services.AddIdentity();
@@ -69,7 +84,7 @@ internal class Program
 			app.UseSwagger();
 			app.UseSwaggerUI();
 		}
-
+		app.UseCors();
 		//app.UseHttpsRedirection();
 		app.UseStaticFiles();
 		app.UseAuthentication();
