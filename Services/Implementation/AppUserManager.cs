@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet.Actions;
 using Repository.Interface;
+using Shared;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.Helper;
@@ -75,12 +76,14 @@ namespace Services.Implementation
 		{
 			var getResult = await _unitOfWork.Repositories.userProfileRepository.GetById(id);
 			var mappedResult = _mapper.Map<UserProfileDto>(getResult);
+			MapCorrectProfileUrl(mappedResult);
 			return mappedResult;
 		}
 		public async Task<UserProfileDto?> GetUserProfileByIdentity(int identityId)
 		{
 			var getResult = (await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => u.IdentityId == identityId)).FirstOrDefault();
 			var mappedResult = _mapper.Map<UserProfileDto>(getResult);
+			MapCorrectProfileUrl(mappedResult);
 			return mappedResult;
 		}
 		public async Task<Result<UserProfileDto>> UpdateProfile(int userProfileId, UpdateUserProfileDto updateUserProfileDto)
@@ -100,6 +103,7 @@ namespace Services.Implementation
 			await _unitOfWork.Repositories.userProfileRepository.Update(userProfile);
 			await _unitOfWork.SaveChangesAsync();
 			var mappedResult = _mapper.Map<UserProfileDto>(userProfile);
+			MapCorrectProfileUrl(mappedResult);
 			return Result<UserProfileDto>.Success(mappedResult);
 		}
 		public async Task<Result<string>> UpdateProfileImage(Stream filestream, string contentType, string fileName, int  userProfileId, CancellationToken cancellationToken = default)
@@ -191,6 +195,12 @@ namespace Services.Implementation
 		private async Task<UserProfile?> GetUserProfileById(int userProfileId)
 		{
 			return  await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+		}
+		private void MapCorrectProfileUrl(UserProfileDto userProfileDto)
+		{
+			userProfileDto.ProfileBlobUrl =  string.IsNullOrEmpty(userProfileDto.ProfileBlobUrl) 
+				? userProfileDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/"+ ApplicationStaticValue.DefaultProfileImageName
+				: userProfileDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + userProfileDto.ProfileBlobUrl;
 		}
 	}
 }

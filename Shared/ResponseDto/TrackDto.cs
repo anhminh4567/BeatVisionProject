@@ -29,6 +29,7 @@ namespace Shared.ResponseDto
 		public int? AudioSampleRate { get; set; }
 		public int? AudioBitPerSample { get; set; }
 		public bool IsPublished { get; set; } = false;
+		public string? ProfileBlobUrl { get; set; }
 		public DateTime? PublishDateTime { get; set; }
 		public decimal Price { get; set; }
 		public IList<TrackCommentDto> Comments { get; set; } = new List<TrackCommentDto>();

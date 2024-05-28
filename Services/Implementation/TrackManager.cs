@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Org.BouncyCastle.Pkcs;
 using Repository.Interface;
@@ -18,6 +19,7 @@ using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -415,17 +417,25 @@ namespace Services.Implementation
 		{
 			return await _audioFileService.DownloadPublicMp3Audio(trackId);
 		}
+		
 		public async Task<IList<TrackResponseDto>> GetTracksRange(int start, int amount) 
 		{
 			var tracks = await _unitOfWork.Repositories.trackRepository.GetByCondition(includeProperties: "Tags", skip: start, take: amount);
 			var mappedList = _mapper.Map<IList<TrackResponseDto>>(tracks);
+			foreach(var track in mappedList)
+			{
+				MapCorrectImageUrl(track);
+			}
 			return mappedList;
 		}
+
 		public async Task<TrackResponseDto> GetTrackDetail(int trackId)
 		{
 			//Track
 			var getTrackDetail = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "Tags,Comments,Licenses,AudioFile");
-			return _mapper.Map<TrackResponseDto>(getTrackDetail);
+			var correctResult = _mapper.Map<TrackResponseDto>(getTrackDetail);
+			 MapCorrectImageUrl(correctResult);
+			return correctResult;
 		}
 		public async Task<IList<TrackResponseDto>> GetTracksWithTags(params int[] tagId)
 		{
@@ -439,6 +449,10 @@ namespace Services.Implementation
 				uniqueItemList.UnionWith(getTagRelatedTracks);
 			}
 			IList<TrackResponseDto> returnList = _mapper.Map<IList<TrackResponseDto>>(uniqueItemList.ToList());
+			foreach(var t in returnList)
+			{
+				MapCorrectImageUrl(t);
+			}
 			return returnList;
 		}
 		public async Task<Result> DeleteTrack(int trackId)
@@ -578,7 +592,13 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 			return Result.Success();
 		}
-
+		private void MapCorrectImageUrl(TrackResponseDto track)
+		{
+			track.ProfileBlobUrl = string.IsNullOrEmpty(track.ProfileBlobUrl)
+					? _appSettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + ApplicationStaticValue.DefaultTrackImageName
+					: _appSettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + track.ProfileBlobUrl;
+		}
+		
 	}
 
 }

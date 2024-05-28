@@ -27,7 +27,7 @@ namespace Shared.MapperProfiles
 			CreateMap<Tag, TagDto>();
 			CreateMap<TrackLicense, TrackLicenseDto>();
 			CreateMap<TrackComment, TrackCommentDto>();
-			CreateMap<UserProfile,UserProfileDto >();
+			CreateMap<UserProfile, UserProfileDto>();
 			CreateMap<CartItem,CartItemDto >();
 			CreateMap<Notification, NotificationDto >();
 			CreateMap<Message, MessageDto>();
