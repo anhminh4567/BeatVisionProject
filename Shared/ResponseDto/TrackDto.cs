@@ -32,6 +32,7 @@ namespace Shared.ResponseDto
 		public string? ProfileBlobUrl { get; set; }
 		public DateTime? PublishDateTime { get; set; }
 		public decimal Price { get; set; }
+		public string? Mp3AbsolutePath { get; set; }
 		public IList<TrackCommentDto> Comments { get; set; } = new List<TrackCommentDto>();
 		public IList<TagDto> Tags { get; set; } = new List<TagDto>();
 		public IList<TrackLicenseDto> Licenses { get; set; } = new List<TrackLicenseDto>();

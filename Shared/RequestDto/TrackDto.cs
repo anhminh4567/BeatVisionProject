@@ -30,6 +30,8 @@ namespace Shared.RequestDto
 		public bool IsTrackPaidContent { get; set; }
 		[Required]
 		public IList<int> TagsId { get; set; } = new List<int>();
+		[Required]
+		public IList<int> LicenseIds { get; set; } = new List<int>();
 		public string? ProfileBlobUrl { get; set; } = null;
 	}
 	public class PublishTrackDto

@@ -19,6 +19,7 @@ namespace Shared.ResponseDto
 		public bool EmailConfirmed { get;set; }
 		public DateTime LockoutEnd { get; set; }
 		public int AccessFailedCount { get;set; }
+		public string? PhoneNumber { get; set; }
 		public UserProfileDto? UserProfile { get; set; } // Reference navigation to dependent
 		public virtual IList<CustomIdentityUserTokenDto> UserTokens { get; set; } = new List<CustomIdentityUserTokenDto>();
 		public virtual IList<CustomIdentityUserClaimsDto> UserClaims { get; set; } = new List<CustomIdentityUserClaimsDto>();

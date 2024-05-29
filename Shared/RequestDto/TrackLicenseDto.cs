@@ -18,7 +18,7 @@ namespace Shared.RequestDto
 		//public decimal CurrentPrice { get; set; }
 		public int? DistributionLimit { get; set; } 
 		public int? StreamLimit { get; set; } 
-		public bool IsProducerTagged { get; set; } = true;
+		public bool? IsProducerTagged { get; set; } = true;
 		[Required]
 		public IFormFile LicensePdfFile { get; set; }
 		//public string LicensePdfBlobPath { get; set; }

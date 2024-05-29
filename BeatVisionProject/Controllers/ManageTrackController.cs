@@ -120,12 +120,18 @@ namespace BeatVisionProject.Controllers
 			return Ok(getResult);
 		}
 		[HttpGet("get-track-license-paging")]
-		public async Task<ActionResult> GetTrackLicensePaging([FromQuery] int start)
+		public async Task<ActionResult<PagingResponseDto<IList<TrackLicenseDto>>>> GetTrackLicensePaging([FromQuery] int start, int amount)
 		{
 			if (start == null || start < 0)
 				return BadRequest();
-			var getResult = await _trackManager.GetTrackLicensePaging(start, AmountPerPage);
-			return Ok(getResult);
+			var trueStart = start * amount;
+			var getResult = await _trackManager.GetTrackLicensePaging(trueStart, amount);
+			var getTotalTrackCount = _trackManager.GetTrackLicenseCount();
+			return Ok(new PagingResponseDto<IList<TrackLicenseDto>>()
+			{
+				TotalCount = getTotalTrackCount,
+				Value = getResult
+			}) ;
 		}
 		[HttpGet("download-track-license")]
 		public async Task<ActionResult> DownloadTrackLicensePaging([FromQuery] int licenseId)
