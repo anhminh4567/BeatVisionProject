@@ -4,6 +4,7 @@ using Shared.ConfigurationBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Microsoft.AspNetCore.Http.Features;
 internal class Program
 {
 	private static void Main(string[] args)
@@ -25,6 +26,9 @@ internal class Program
 		}
 
 		builder.Services.AddSingleton(appsettingsBinding);
+		builder.Services.Configure<FormOptions>(options => {
+			options.MultipartBodyLengthLimit = 10000000000;//tam 10GB
+		});
 		builder.Services.AddControllers()
 			.AddNewtonsoftJson(options =>
 			{
