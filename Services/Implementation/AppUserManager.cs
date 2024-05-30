@@ -99,6 +99,12 @@ namespace Services.Implementation
 		}
 		public async Task<Result<UserProfileDto>> UpdateProfile(UserProfile userProfile, UpdateUserProfileDto updateUserProfileDto)
 		{
+			if (updateUserProfileDto.Birthday is not null)
+			{
+				var DateUtc = DateTime.SpecifyKind(updateUserProfileDto.Birthday.Value, DateTimeKind.Utc);
+				var DateLocal = TimeZoneInfo.ConvertTimeFromUtc(DateUtc, TimeZoneInfo.Local);
+				updateUserProfileDto.Birthday = DateLocal;
+			}
 			_mapper.Map(updateUserProfileDto, userProfile);
 			await _unitOfWork.Repositories.userProfileRepository.Update(userProfile);
 			await _unitOfWork.SaveChangesAsync();

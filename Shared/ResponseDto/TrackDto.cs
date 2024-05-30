@@ -23,7 +23,7 @@ namespace Shared.ResponseDto
 		public bool IsAudioPrivate { get; set; }
 		public bool IsAudioRemoved { get; set; }
 		public bool IsAudioForSale { get; set; } 
-		public TrackStatus Status { get; set; }
+		public string Status { get; set; }
 		public double AudioLenghtSeconds { get; set; }
 		public int? AudioChannels { get; set; }
 		public int? AudioSampleRate { get; set; }

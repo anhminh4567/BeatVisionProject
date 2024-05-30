@@ -196,6 +196,9 @@ namespace Services.Implementation
 		public async Task<Result> SetPublishTrack(PublishTrackDto publishTrackDto)
 		{
 			var error = new Error();
+			var publishDateUtc = DateTime.SpecifyKind(publishTrackDto.PublishDate, DateTimeKind.Utc);
+			var publishDateLocal = TimeZoneInfo.ConvertTimeFromUtc(publishDateUtc, TimeZoneInfo.Local);
+			publishTrackDto.PublishDate = publishDateLocal;
 			var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(publishTrackDto.TrackId);
 			if (getTrack is null)
 			{
@@ -234,6 +237,7 @@ namespace Services.Implementation
 			getTrack.Status = TrackStatus.WAIT_FOR_PUBLISH;
 			await _unitOfWork.Repositories.trackRepository.Update(getTrack);
 			await _unitOfWork.SaveChangesAsync();
+			PublishTrack();
 			return Result.Success();
 		}
 		//for background service
@@ -437,84 +441,95 @@ namespace Services.Implementation
 				t.GeneratedName == getWavFile.GeneratedName)).FirstOrDefault();
 			if (tryGetMp3Path == null)
 				return null;
-			return _appSettings.ExternalUrls.AzureBlobBaseUrl + "/" + tryGetMp3Path.PathUrl;
+			return _appSettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + tryGetMp3Path.PathUrl;
 		}
 
 
-		
+
 		public async Task<IList<TrackResponseDto>> GetTracksRange(int start, int amount)
-	{
-		var tracks = await _unitOfWork.Repositories.trackRepository.GetByCondition(includeProperties: "Tags", skip: start, take: amount);
-		var mappedList = _mapper.Map<IList<TrackResponseDto>>(tracks);
-		foreach (var track in mappedList)
 		{
-			MapCorrectImageUrl(track);
+			var tracks = await _unitOfWork.Repositories.trackRepository.GetByCondition(includeProperties: "Tags", skip: start, take: amount);
+			var mappedList = _mapper.Map<IList<TrackResponseDto>>(tracks);
+			foreach (var track in mappedList)
+			{
+				MapCorrectImageUrl(track);
+			}
+			return mappedList;
 		}
-		return mappedList;
-	}
+		public async Task<IList<TrackResponseDto>> GetTrackRange_Status(int start, int amount, string STATUS)
+		{
+			var tracks = await _unitOfWork.Repositories.trackRepository
+				.GetByCondition(t => t.Status.ToString() == STATUS, null,includeProperties: "Tags", skip: start, take: amount);
+			var mappedList = _mapper.Map<IList<TrackResponseDto>>(tracks);
+			foreach (var track in mappedList)
+			{
+				MapCorrectImageUrl(track);
+			}
+			return mappedList;
+		}
 
-	public async Task<TrackResponseDto> GetTrackDetail(int trackId)
-	{
-		//Track
-		var getTrackDetail = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "Tags,Comments,Licenses,AudioFile");
-		var correctResult = _mapper.Map<TrackResponseDto>(getTrackDetail);
-		MapCorrectImageUrl(correctResult);
-		var getMp3AbsolutePath = await GetAbsoluteMp3PublicPath(getTrackDetail);
+		public async Task<TrackResponseDto> GetTrackDetail(int trackId)
+		{
+			//Track
+			var getTrackDetail = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "Tags,Comments,Licenses,AudioFile");
+			var correctResult = _mapper.Map<TrackResponseDto>(getTrackDetail);
+			MapCorrectImageUrl(correctResult);
+			var getMp3AbsolutePath = await GetAbsoluteMp3PublicPath(getTrackDetail);
 			correctResult.Mp3AbsolutePath = getMp3AbsolutePath;
-		return correctResult;
-	}
-	public async Task<IList<TrackResponseDto>> GetTracksWithTags(params int[] tagId)
-	{
-		if (tagId.Length == 0)
-			return new List<TrackResponseDto>();
-		var getTags = await _unitOfWork.Repositories.tagRepository.GetByCondition(t => tagId.Contains(t.Id));
-		ISet<Track> uniqueItemList = new HashSet<Track>();
-		foreach (var t in getTags)
-		{
-			var getTagRelatedTracks = (await _unitOfWork.Repositories.tagRepository.GetByIdInclude(t.Id, "Tracks")).Tracks;
-			uniqueItemList.UnionWith(getTagRelatedTracks);
+			return correctResult;
 		}
-		IList<TrackResponseDto> returnList = _mapper.Map<IList<TrackResponseDto>>(uniqueItemList.ToList());
-		foreach (var t in returnList)
+		public async Task<IList<TrackResponseDto>> GetTracksWithTags(params int[] tagId)
 		{
-			MapCorrectImageUrl(t);
+			if (tagId.Length == 0)
+				return new List<TrackResponseDto>();
+			var getTags = await _unitOfWork.Repositories.tagRepository.GetByCondition(t => tagId.Contains(t.Id));
+			ISet<Track> uniqueItemList = new HashSet<Track>();
+			foreach (var t in getTags)
+			{
+				var getTagRelatedTracks = (await _unitOfWork.Repositories.tagRepository.GetByIdInclude(t.Id, "Tracks")).Tracks;
+				uniqueItemList.UnionWith(getTagRelatedTracks);
+			}
+			IList<TrackResponseDto> returnList = _mapper.Map<IList<TrackResponseDto>>(uniqueItemList.ToList());
+			foreach (var t in returnList)
+			{
+				MapCorrectImageUrl(t);
+			}
+			return returnList;
 		}
-		return returnList;
-	}
-	public async Task<Result> DeleteTrack(int trackId)
-	{
-		var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile");
-		var getBlobAudio = getTrack.AudioFile;
-		var getGeneratedName = getBlobAudio.GeneratedName;
-		var getAllBlobAudioFile = await _unitOfWork.Repositories.blobFileDataRepository.GetByCondition(f => f.GeneratedName == getGeneratedName);
-		foreach (var blobAudio in getAllBlobAudioFile)
+		public async Task<Result> DeleteTrack(int trackId)
 		{
-			_audioFileService.DeleteAudioFile_Any(blobAudio.PathUrl, blobAudio.DirectoryType);
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile");
+			var getBlobAudio = getTrack.AudioFile;
+			var getGeneratedName = getBlobAudio.GeneratedName;
+			var getAllBlobAudioFile = await _unitOfWork.Repositories.blobFileDataRepository.GetByCondition(f => f.GeneratedName == getGeneratedName);
+			foreach (var blobAudio in getAllBlobAudioFile)
+			{
+				_audioFileService.DeleteAudioFile_Any(blobAudio.PathUrl, blobAudio.DirectoryType);
+			}
+			await _unitOfWork.Repositories.blobFileDataRepository.DeleteRange(getAllBlobAudioFile);
+			await _unitOfWork.Repositories.trackRepository.Delete(getTrack);
+			await _unitOfWork.SaveChangesAsync();
+			return Result.Success();
 		}
-		await _unitOfWork.Repositories.blobFileDataRepository.DeleteRange(getAllBlobAudioFile);
-		await _unitOfWork.Repositories.trackRepository.Delete(getTrack);
-		await _unitOfWork.SaveChangesAsync();
-		return Result.Success();
-	}
 
-	public async Task<IList<TrackCommentDto>> GetTrackComments(int trackId)
-	{
-		var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
-		if (getTrack is null)
-			return new List<TrackCommentDto>();
-		var getResult = await _commentService.GetTrackComments(getTrack);
-		return _mapper.Map<IList<TrackCommentDto>>(getResult);
-	}
-	public async Task<IList<TrackCommentDto>> GetTrackCommentReplies(int trackId, int commentId)
-	{
-		var getTrackComment = (await _unitOfWork.Repositories.trackCommentRepository.GetByCondition(c => c.TrackId == trackId && c.Id == commentId)).FirstOrDefault();
-		if (getTrackComment is null)
-			return new List<TrackCommentDto>();
-		var getComments = _commentService.GetCommentReplys(getTrackComment);
-		return _mapper.Map<IList<TrackCommentDto>>(getComments);
-	}
+		public async Task<IList<TrackCommentDto>> GetTrackComments(int trackId)
+		{
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
+			if (getTrack is null)
+				return new List<TrackCommentDto>();
+			var getResult = await _commentService.GetTrackComments(getTrack);
+			return _mapper.Map<IList<TrackCommentDto>>(getResult);
+		}
+		public async Task<IList<TrackCommentDto>> GetTrackCommentReplies(int trackId, int commentId)
+		{
+			var getTrackComment = (await _unitOfWork.Repositories.trackCommentRepository.GetByCondition(c => c.TrackId == trackId && c.Id == commentId)).FirstOrDefault();
+			if (getTrackComment is null)
+				return new List<TrackCommentDto>();
+			var getComments = _commentService.GetCommentReplys(getTrackComment);
+			return _mapper.Map<IList<TrackCommentDto>>(getComments);
+		}
 
-}
+	}
 }
 namespace Services.Implementation
 {

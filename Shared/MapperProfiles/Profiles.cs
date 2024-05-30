@@ -4,7 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shared.ConfigurationBinding;
+using Shared.Enums;
 using Shared.IdentityConfiguration;
 using Shared.Models;
 using Shared.RequestDto;
@@ -23,7 +25,8 @@ namespace Shared.MapperProfiles
 			CreateMap<CustomIdentityUserToken, CustomIdentityUserTokenDto>();
 
 			CreateMap<UpdateUserProfileDto, UserProfile>();
-			CreateMap<Track, TrackResponseDto>();
+			CreateMap<Track, TrackResponseDto>().ForMember(des => des.Status,
+				opt => opt.MapFrom( (src ) => src.Status.ToString()));
 			CreateMap<Tag, TagDto>();
 			CreateMap<TrackLicense, TrackLicenseDto>();
 			CreateMap<TrackComment, TrackCommentDto>();

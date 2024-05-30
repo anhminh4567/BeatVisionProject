@@ -55,6 +55,17 @@ namespace BeatVisionProject.Controllers
 			response.Value = await _trackManager.GetTracksRange(trueStartPosition, amountToTake);
 			return Ok( response);
 		}
+		[HttpGet("get-range-status")]
+		public async Task<ActionResult<IList<PagingResponseDto<IList<TrackResponseDto>>>>> GetTrackRange([FromQuery] string TRACK_STATUS, [FromQuery] int currentPage, [FromQuery] int amount = 10)
+		{
+			var trueStartPosition = currentPage * amount;
+			var amountToTake = amount;
+			var totalTrackCount = _trackManager.GetTotalTrackCount();
+			var response = new PagingResponseDto<IList<TrackResponseDto>>();
+			response.TotalCount = totalTrackCount;
+			response.Value = await _trackManager.GetTrackRange_Status(trueStartPosition, amountToTake, TRACK_STATUS);
+			return Ok(response);
+		}
 		[HttpGet("get-detail/{trackId}")]
 		public async Task<ActionResult<TrackResponseDto>> GetTrackDetail([FromRoute] int trackId)
 		{
@@ -84,6 +95,8 @@ namespace BeatVisionProject.Controllers
 		[HttpPost("publish-track")]
 		public async Task<ActionResult> PublishTrack([FromForm] PublishTrackDto publishTrackDto)
 		{
+			//var publishDateUtc = DateTime.SpecifyKind(publishTrackDto.PublishDate, DateTimeKind.Utc);
+			//var publishDateLocal = TimeZoneInfo.ConvertTimeFromUtc(publishDateUtc, TimeZoneInfo.Local);
 			var setResult = await _trackManager.SetPublishTrack(publishTrackDto);
 			if (setResult.isSuccess is false)
 			{
@@ -97,7 +110,7 @@ namespace BeatVisionProject.Controllers
 			var pulldownResult = await _trackManager.PulldownTrack(id);
 			if (pulldownResult.isSuccess is false)
 			{
-				return StatusCode(StatusCodes.Status500InternalServerError, pulldownResult.Error);
+				return StatusCode(pulldownResult.Error.StatusCode, pulldownResult.Error);
 			}
 			return Ok();
 		}
