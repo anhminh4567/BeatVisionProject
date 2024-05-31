@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using Azure;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Identity.Client;
 using Org.BouncyCastle.Pkcs;
 using Repository.Implementation;
 using Repository.Interface;
@@ -17,12 +19,14 @@ using Shared.RequestDto;
 using Shared.ResponseDto;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Services.Implementation
@@ -310,15 +314,19 @@ namespace Services.Implementation
 			}
 			if (track.IsPublished is false)
 			{
-				error.ErrorMessage = "the track is not publish ";
-				return Result.Fail();
+				//if track is just set for publish, wait for it, then ofcourse you still can pull it down
+				if (track.Status != TrackStatus.WAIT_FOR_PUBLISH)
+				{
+					error.ErrorMessage = "the track is not publish ";
+					return Result.Fail();
+				}
 			}
 			var getWAVBlobFile = await _unitOfWork.Repositories.blobFileDataRepository
 				.GetById(track.AudioBlobId);
 			//track.Status = TrackStatus.REMOVED;
 			//track.IsAudioRemoved = true;
-			track.Status = TrackStatus.WAIT_FOR_PUBLISH;
-			track.IsPublished = false;
+			//track.Status = TrackStatus.WAIT_FOR_PUBLISH;
+			//track.IsPublished = false;
 			var WAVfileName = getWAVBlobFile.GeneratedName;
 			var getAllRelatedFile = await _unitOfWork.Repositories.blobFileDataRepository
 				.GetByCondition(f => f.GeneratedName == WAVfileName);
@@ -358,7 +366,13 @@ namespace Services.Implementation
 			{
 				if (updatePublishtrackDto.IsChangePublishDate)
 				{
-					var isPublishDayOk = ValidatePublishDay(updatePublishtrackDto.PublishDate);
+					var publishDateUtc = DateTime.SpecifyKind(updatePublishtrackDto.PublishDate, DateTimeKind.Utc);
+					var publishDateLocal = TimeZoneInfo.ConvertTimeFromUtc(publishDateUtc, TimeZoneInfo.Local);
+					var isPublishDayOk = ValidatePublishDay(publishDateLocal);
+					if (isPublishDayOk)
+					{
+
+					}
 				}
 			}
 			return Result.Fail();
@@ -448,7 +462,7 @@ namespace Services.Implementation
 
 		public async Task<IList<TrackResponseDto>> GetTracksRange(int start, int amount)
 		{
-			var tracks = await _unitOfWork.Repositories.trackRepository.GetByCondition(includeProperties: "Tags", skip: start, take: amount);
+			var tracks = await _unitOfWork.Repositories.trackRepository.GetByCondition(includeProperties: "Tags,Licenses", skip: start, take: amount);
 			var mappedList = _mapper.Map<IList<TrackResponseDto>>(tracks);
 			foreach (var track in mappedList)
 			{
@@ -459,7 +473,7 @@ namespace Services.Implementation
 		public async Task<IList<TrackResponseDto>> GetTrackRange_Status(int start, int amount, string STATUS)
 		{
 			var tracks = await _unitOfWork.Repositories.trackRepository
-				.GetByCondition(t => t.Status.ToString() == STATUS, null,includeProperties: "Tags", skip: start, take: amount);
+				.GetByCondition(t => t.Status.ToString() == STATUS, null, includeProperties: "Tags", skip: start, take: amount);
 			var mappedList = _mapper.Map<IList<TrackResponseDto>>(tracks);
 			foreach (var track in mappedList)
 			{
@@ -496,10 +510,74 @@ namespace Services.Implementation
 			}
 			return returnList;
 		}
+
+		public async Task<Result> UpdateTrack(UpdateTrackDto updateTrackDto)
+		{
+			var error = new Error();
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(updateTrackDto.TrackId, "AudioFile,Tags,Licenses");
+			if (getTrack is null)
+			{
+				error.ErrorMessage = "track not found";
+				return Result.Fail(error);
+			}
+			if (getTrack.Status != TrackStatus.NOT_FOR_PUBLISH)
+			{
+				error.ErrorMessage = "Track must not be for publish to be updated, cannot update when it is published or wait for published, might be confusing";
+				return Result.Fail(error);
+			}
+			var getTags = await _unitOfWork.Repositories.tagRepository.GetByCondition(tag => updateTrackDto.TagsId.Contains(tag.Id));
+			var getLicenses = await _unitOfWork.Repositories.trackLicenseRepository.GetByCondition(license => updateTrackDto.LicenseIds.Contains(license.Id));
+			try
+			{
+				await _unitOfWork.BeginTransactionAsync();
+				getTrack.Tags.Clear();
+				getTrack.Licenses.Clear();
+				await _unitOfWork.Repositories.trackRepository.Update(getTrack);
+				await _unitOfWork.SaveChangesAsync();
+				
+				getTrack.Tags = getTags.ToList();
+				getTrack.Licenses = getLicenses.ToList();
+				
+				getTrack.TrackName = updateTrackDto.TrackName;
+				if (updateTrackDto.bannderFile is not null)
+				{
+					var RANDOM_GENERATED_NAME = Guid.NewGuid().ToString();
+					var imageFile = updateTrackDto.bannderFile;
+					using Stream imageStream = imageFile.OpenReadStream();
+					var uploadProfile = await _imageFileService.UploadNewImage(imageStream, imageFile.FileName, RANDOM_GENERATED_NAME, imageFile.ContentType);
+					getTrack.ProfileBlobUrl = uploadProfile.Value;
+				}
+				var updateResult = await _unitOfWork.Repositories.trackRepository.Update(getTrack);
+				await _unitOfWork.SaveChangesAsync();
+				if (updateResult is null)
+				{
+					await _unitOfWork.RollBackAsync();
+					error.ErrorMessage = "fail to update";
+					Result.Fail(error);
+				}
+				await _unitOfWork.CommitAsync();
+				return Result.Success();
+			}
+			catch (Exception ex)
+			{
+				await _unitOfWork.RollBackAsync();
+				error.isException = true;
+				error.StatusCode = StatusCodes.Status500InternalServerError;
+				error.ErrorMessage = ex.Message;
+				return Result.Fail(error);
+			}
+			
+		}
 		public async Task<Result> DeleteTrack(int trackId)
 		{
+			var error = new Error();
 			var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile");
-			var getBlobAudio = getTrack.AudioFile;
+			var getBlobAudio = getTrack?.AudioFile;
+			if (getTrack is null || getBlobAudio is null)
+			{
+				error.ErrorMessage = "track not found";
+				return Result.Fail();
+			}
 			var getGeneratedName = getBlobAudio.GeneratedName;
 			var getAllBlobAudioFile = await _unitOfWork.Repositories.blobFileDataRepository.GetByCondition(f => f.GeneratedName == getGeneratedName);
 			foreach (var blobAudio in getAllBlobAudioFile)
@@ -644,7 +722,6 @@ namespace Services.Implementation
 					? _appSettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + ApplicationStaticValue.DefaultTrackImageName
 					: _appSettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + track.ProfileBlobUrl;
 		}
-
 	}
 
 }

@@ -126,7 +126,8 @@ namespace Repository.Implementation
 		}
 		public virtual Task<T> Update(T entity)
 		{
-			return Task.FromResult(_dbSet.Update(entity).Entity);
+			var resul = _dbSet.Update(entity).Entity;
+			return Task.FromResult(resul);
 		}
 		public virtual void Save()
 		{

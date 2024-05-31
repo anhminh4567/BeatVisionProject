@@ -34,6 +34,22 @@ namespace Shared.RequestDto
 		public IList<int> LicenseIds { get; set; } = new List<int>();
 		public string? ProfileBlobUrl { get; set; } = null;
 	}
+	public class UpdateTrackDto
+	{
+		[Required]
+		public int TrackId { get; set; }
+		[AllowNull]
+		[FileType(new string[] { "image/jpeg", "image/png" })]
+		public IFormFile? bannderFile { get; set; }
+		[Required]
+		[MinLength(1)]
+		[RegularExpression(@"^[a-zA-Z0-9\s.,]*$")]
+		public string TrackName { get; set; }
+		[Required]
+		public IList<int> TagsId { get; set; } = new List<int>();
+		[Required]
+		public IList<int> LicenseIds { get; set; } = new List<int>();
+	}
 	public class PublishTrackDto
 	{
 		[Required]
@@ -68,6 +84,7 @@ namespace Shared.RequestDto
 		[Range(1000, 5000000)]
 		public decimal Price { get; set; } = 0;
 	}
+	
 	//public int Id { get; set; }
 	//public string TrackName { get; set; }
 	//public int OwnerId { get; set; }

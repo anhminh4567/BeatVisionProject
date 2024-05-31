@@ -208,5 +208,25 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok();
 		}
+		[HttpDelete("delete-track")]
+		public async Task<ActionResult> DeleteTrack([FromQuery] int trackId)
+		{
+			if (trackId <= 0)
+				return BadRequest();
+			var deleteResult = await _trackManager.DeleteTrack(trackId);
+			if(deleteResult.isSuccess is false)
+				return StatusCode(deleteResult.Error.StatusCode,deleteResult.Error);
+			return Ok();
+		}
+		[HttpPut]
+		public async Task<ActionResult> UpdateTrack([FromForm] UpdateTrackDto updateTrackDto)
+		{
+			if(updateTrackDto.TrackId <= 0 )
+				return BadRequest();
+			var updateResult = await _trackManager.UpdateTrack(updateTrackDto);
+			if(updateResult.isSuccess is false)
+				return StatusCode(updateResult.Error.StatusCode,updateResult.Error);
+			return Ok();
+		}
 	}
 }

@@ -26,7 +26,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(await _tagManager.GetAll());
 		}
 		[HttpPost]
-		public async Task<ActionResult<TagDto?>> CreateTag(CreateTagDto createTagDto)
+		public async Task<ActionResult<TagDto?>> CreateTag([FromForm]CreateTagDto createTagDto)
 		{
 			var createResult = await _tagManager.Create(createTagDto);
 			if(createResult == null)
