@@ -35,5 +35,8 @@ namespace Shared.Enums
 	{
 		Track,User
 	}
+	public enum OrderStatus{
+		WAIT_FOR_PAYMENT = 0 , PAID = 1, CANCELLED = 2
+	}
 	
 }

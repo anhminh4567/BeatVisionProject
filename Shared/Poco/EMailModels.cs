@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Shared.ResponseDto;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -30,5 +31,15 @@ namespace Shared.Poco
 		public string TrackName { get; set; }
 		[Required]
 		public string LicenseName { get; set; } 
+    }
+    public class NotificationEmailModel
+    {
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public DateTime SendTime { get; set; }
+        public string NotificationType { get; set; }
+        public string Weight { get; set; }
+        public TrackResponseDto TrackToPublish { get; set; }
+        public UserProfileDto UserToSend { get; set; }
     }
 }

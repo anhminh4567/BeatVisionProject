@@ -1,11 +1,14 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Repository.Interface;
 using Services.Implementation;
 using Services.Interface;
 using Shared.ConfigurationBinding;
+using Shared.Enums;
 using Shared.Poco;
 using Shared.RequestDto;
+using Shared.ResponseDto;
 
 namespace BeatVisionProject.Controllers
 {
@@ -17,13 +20,14 @@ namespace BeatVisionProject.Controllers
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly AppsettingBinding _appsettings;
 		private readonly AudioFileServices _audioFileService;
-
-		public TestController(IMyEmailService mailService, IUnitOfWork unitOfWork, AppsettingBinding appsettings, AudioFileServices audioFileService)
+		private readonly IMapper _mapper;
+		public TestController(IMyEmailService mailService, IUnitOfWork unitOfWork, AppsettingBinding appsettings, AudioFileServices audioFileService, IMapper mapper)
 		{
 			_mailService = mailService;
 			_unitOfWork = unitOfWork;
 			_appsettings = appsettings;
 			_audioFileService = audioFileService;
+			_mapper = mapper;
 		}
 
 		[HttpGet]
@@ -64,6 +68,31 @@ namespace BeatVisionProject.Controllers
 		[HttpPost("validate-with-regrex")]
 		public async Task<ActionResult> TestValidatoin([FromForm]CreateTrackDto createTrackDto)
 		{
+			return Ok();
+		}
+		[HttpPost("send-noti-mail")]
+		public async Task<ActionResult> TestSendEmail()
+		{
+			var meta = new EmailMetaData()
+			{
+				ToEmail = "testingwebandstuff@gmail.com",
+				Subject = "Test email",
+			};
+			var notiModel = new NotificationEmailModel()
+			{
+				Content = "This is the test email, dont share or do a damn thing",
+				NotificationType = NotificationType.GROUP.ToString(),
+				SendTime = DateTime.Now,
+				Title = "Test email",
+				TrackToPublish = null,
+				UserToSend = _mapper.Map<UserProfileDto>( await _unitOfWork.Repositories.userProfileRepository.GetById(13) ),
+				Weight = NotificationWeight.MINOR.ToString(),
+			};
+			await _mailService.SendEmailWithTemplate(meta, (_appsettings.MailTemplateAbsolutePath.FirstOrDefault(t => t.TemplateName == "NotificationEmail")).TemplateAbsolutePath ,notiModel);
+
+
+			//await _mailService.SendEmailWithTemplate(meta, (_appsettings.MailTemplateAbsolutePath.FirstOrDefault(t => t.TemplateName == "ConfirmEmailTemplate")).TemplateAbsolutePath, notiModel);
+
 			return Ok();
 		}
 	}

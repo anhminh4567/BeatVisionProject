@@ -32,6 +32,7 @@ namespace Shared.Models
         public string? Youtube { get; set; }
         public string? SoundCloud { get; set; }
         public string? Facebook { get; set; }
+        public bool IsSubcribed { get; set; } = false;
         //public IList<Track> OwnedTracks { get; set; } = new List<Track>(); 
         
         public IList<Comment> Comments { get; set; } = new List<Comment>();

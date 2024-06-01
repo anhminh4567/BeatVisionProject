@@ -17,4 +17,8 @@ namespace Shared.RequestDto
 		[Required]
 		public NotificationWeight Weight { get; set; }
 	}
+	public class CreateNotificationForNewTracks : CreateMessageDto
+	{
+		public int TrackId { get; set; }
+	}
 }

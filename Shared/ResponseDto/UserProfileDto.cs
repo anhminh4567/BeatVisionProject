@@ -13,8 +13,8 @@ namespace Shared.ResponseDto
 	public class UserProfileDto
 	{
 		public int Id { get; set; }
-		//public int IdentityId { get; set; } // Required foreign key property
-		//public CustomIdentityUser IdentityUser { get; set; } = null!;// Required reference navigation to principal
+		public int? IdentityId { get; set; } // Required foreign key property
+		public CustomIdentityUser? IdentityUser { get; set; } = null!;// Required reference navigation to principal
 		public string? Description { get; set; }
 		public string Fullname { get; set; }
 		public string? ProfileBlobUrl { get; set; }
@@ -26,6 +26,7 @@ namespace Shared.ResponseDto
 		public string? Youtube { get; set; }
 		public string? SoundCloud { get; set; }
 		public string? Facebook { get; set; }
+		public bool? IsSubcribed { get; set; }
 		public IList<CartItemDto> CartItems { get; set; } = new List<CartItemDto>();
 		public IList<NotificationDto> Notifications { get; set; } = new List<NotificationDto>();
 		public IList<MessageDto> CreatedMessage { get; set; } = new List<MessageDto>();

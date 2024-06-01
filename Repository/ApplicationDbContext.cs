@@ -42,6 +42,10 @@ namespace Repository
         public DbSet<TrackLicense> TrackLicenses { get;set;}
         public DbSet<Tag> Tags { get; set; }
         public DbSet<Coupon> Coupons { get; set; }
+
+
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -192,6 +196,15 @@ namespace Repository
             });
             builder.Entity<Coupon>(entity => { 
             
+            });
+            builder.Entity<Order>(entity => {
+                entity.HasMany(o => o.Items)
+                    .WithOne(o => o.Order)
+                    .HasForeignKey(o => o.OrderId);
+            });
+            builder.Entity<OrderItem>(entity =>
+            {
+
             });
         }
 

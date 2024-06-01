@@ -1,8 +1,17 @@
-﻿using Repository.Interface;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.EntityFrameworkCore.SqlServer.Storage.Internal;
+using Repository.Interface;
+using Services.Interface;
+using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.Helper;
 using Shared.Models;
+using Shared.Poco;
 using Shared.RequestDto;
+using Shared.ResponseDto;
+using StackExchange.Redis;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
@@ -11,25 +20,30 @@ namespace Services.Implementation
 	public class NotificationManager
 	{
 		private readonly IUnitOfWork _unitOfWork;
-
-		public NotificationManager(IUnitOfWork unitOfWork)
+		private readonly IMapper _mapper;
+		private readonly IMyEmailService _mailService;
+		private readonly AppsettingBinding _appsettings;
+		public NotificationManager(IUnitOfWork unitOfWork, IMapper mapper, IMyEmailService mailService, AppsettingBinding appsettingBinding)
 		{
 			_unitOfWork = unitOfWork;
+			_mapper = mapper;
+			_mailService = mailService;
+			_appsettings = appsettingBinding;
 		}
-		public async Task<Result> CreateNotificationToGroups(UserProfile userProfile, CreateMessageDto create, IList<int> receiversId)
-		{
-			return  await CreateNotification(create,NotificationType.GROUP,create.Weight,receiversId,false,userProfile.Id);
-		}
-		public async Task<Result> CreateNotificationToUser(UserProfile userProfile, CreateMessageDto create, int receiverId)
-		{
-			IList<int> receiver = new List<int>{ receiverId };
-			return await CreateNotification(create, NotificationType.SINGLE, create.Weight, receiver, false, userProfile.Id);
-		}
-		public async Task<Result> CreateNotificationToAll(UserProfile userProfile, CreateMessageDto create)
-		{
-			return await CreateNotification(create,NotificationType.ALL,create.Weight,null,false,userProfile.Id);
-		}
-		public async Task<Result> ServerCreateNotificationToGroups( CreateMessageDto create, IList<int> receiversId)
+		//public async Task<Result> CreateNotificationToGroups(UserProfile userProfile, CreateMessageDto create, IList<int> receiversId)
+		//{
+		//	return  await CreateNotification(create,NotificationType.GROUP,create.Weight,receiversId,false,userProfile.Id);
+		//}
+		//public async Task<Result> CreateNotificationToUser(UserProfile userProfile, CreateMessageDto create, int receiverId)
+		//{
+		//	IList<int> receiver = new List<int>{ receiverId };
+		//	return await CreateNotification(create, NotificationType.SINGLE, create.Weight, receiver, false, userProfile.Id);
+		//}
+		//public async Task<Result> CreateNotificationToAll(UserProfile userProfile, CreateMessageDto create)
+		//{
+		//	return await CreateNotification(create, NotificationType.ALL, create.Weight, null, false, userProfile.Id);
+		//}
+		public async Task<Result> ServerCreateNotificationToGroups(CreateMessageDto create, IList<int> receiversId)
 		{
 			return await CreateNotification(create, NotificationType.GROUP, create.Weight, receiversId, true);
 		}
@@ -40,14 +54,76 @@ namespace Services.Implementation
 		}
 		public async Task<Result> ServerCreateNotificationToAll(CreateMessageDto create)
 		{
-			return await CreateNotification(create, NotificationType.ALL, create.Weight, null, true);
+			var result = await CreateNotification(create, NotificationType.ALL, create.Weight, null, true);
+			return result;
+		}
+		public async Task<Result> ServerSendNotificationMail(CreateNotificationForNewTracks notificationForNewTracks)
+		{
+			var getSubscribers = (await GetAllSubscriber());
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(notificationForNewTracks.TrackId);
+			if (getTrack is null)
+				return Result.Fail();
+			var result = await CreateNotification(notificationForNewTracks, NotificationType.GROUP, notificationForNewTracks.Weight, getSubscribers.Select(u => u.Id).ToList(), true);
+			if (result.isSuccess is false)
+				return result;
+			var getSubsctiber = await GetAllSubscriber();
+			foreach (var subscriber in getSubsctiber)
+			{
+				var meta = new EmailMetaData()
+				{
+					ToEmail = subscriber.IdentityUser.Email,
+					Subject = notificationForNewTracks.MessageName,
+				};
+				var notiModel = new NotificationEmailModel()
+				{
+					Content = notificationForNewTracks.Content,
+					NotificationType = NotificationType.GROUP.ToString(),
+					SendTime = DateTime.Now,
+					Title = "New track have been publish",
+					TrackToPublish = _mapper.Map<TrackResponseDto>(getTrack),
+					UserToSend = subscriber,
+					Weight = notificationForNewTracks.Weight.ToString(),
+				};
+				_mailService.SendEmailWithTemplate<NotificationEmailModel>(meta, _appsettings.MailTemplateAbsolutePath.FirstOrDefault(m => m.TemplateName.Equals("NotificationEmail")).TemplateAbsolutePath,notiModel) ;
+			}
+			return Result.Success();
+		}
+		public async Task<Result> ServerSendNotificationMail_ToGroups(CreateMessageDto createMessageDto, params int[] profileId)
+		{
+			var getUser = await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => profileId.Contains(u.Id), null,"IdentityUser");
+			if (getUser == null)
+				return Result.Fail();
+			var result = await CreateNotification(createMessageDto,NotificationType.GROUP,NotificationWeight.MAJOR, profileId, true);
+			if (result.isSuccess is false)
+				return Result.Fail();
+			foreach( var user in  getUser) 
+			{
+				var meta = new EmailMetaData()
+				{
+					ToEmail = user.IdentityUser.Email,
+					Subject = createMessageDto.MessageName,
+				};
+				var notiModel = new NotificationEmailModel()
+				{
+					Content = createMessageDto.Content,
+					NotificationType = NotificationType.GROUP.ToString(),
+					SendTime = DateTime.Now,
+					Title = createMessageDto.MessageName,
+					TrackToPublish = null,
+					UserToSend = _mapper.Map<UserProfileDto>(user),
+					Weight = createMessageDto.Weight.ToString(),
+				};
+				_mailService.SendEmailWithTemplate<NotificationEmailModel>(meta, _appsettings.MailTemplateAbsolutePath.FirstOrDefault(m => m.TemplateName.Equals("NotificationEmail")).TemplateAbsolutePath, notiModel);
+
+			}
+			return Result.Success();
 		}
 		public async Task RemoveExpiredMessage()
 		{
 			var currentDateTime = DateTime.Now;
 			var getExpiredNotification = (await _unitOfWork.Repositories.notificationRepository
 				.GetByCondition(noti => noti.ExpiredDate <= currentDateTime));
-			foreach(var noti in getExpiredNotification) 
+			foreach (var noti in getExpiredNotification)
 			{
 				await _unitOfWork.Repositories.notificationRepository.Delete(noti);
 			}
@@ -56,7 +132,7 @@ namespace Services.Implementation
 		public async Task<Result> CreateNotification(CreateMessageDto create,
 			NotificationType sendScope,
 			NotificationWeight weight,
-			IList<int> receiverIds ,
+			IList<int> receiverIds,
 			bool isServerMessage = true,
 			int creatorId = -1)
 		{
@@ -117,9 +193,9 @@ namespace Services.Implementation
 						break;
 					case NotificationType.SINGLE:
 						var getFirstReceiverId = receiverIds.FirstOrDefault();
-						receiversNoti.Add(new Notification() 
+						receiversNoti.Add(new Notification()
 						{
-							ExpiredDate = createDate.AddDays((int) weight),
+							ExpiredDate = createDate.AddDays((int)weight),
 							ReceiverId = getFirstReceiverId,
 							IsReaded = false,
 							MessageId = result.Id,
@@ -143,5 +219,18 @@ namespace Services.Implementation
 				return Result.Fail();
 			}
 		}
+		private async Task<IList<UserProfileDto>> GetAllSubscriber()
+		{
+			//var getIdentities = await _unitOfWork.Repositories.customIdentityUser.GetByCondition(u => u.UserProfile.);
+			var getList = await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => u.IsSubcribed == true, null, "IdentityUser");
+			var mappedList = _mapper.Map<IList<UserProfileDto>>(getList);
+			return mappedList;
+		}
+		private async Task<IList<UserProfileDto>> GetSubcribers(params int[] subcribersId)
+		{
+			var getList = await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => subcribersId.Contains(u.Id), null, "IdentityUser");
+			return _mapper.Map<IList<UserProfileDto>>(getList);
+		}
+
 	}
 }

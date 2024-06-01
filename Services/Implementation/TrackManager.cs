@@ -42,8 +42,8 @@ namespace Services.Implementation
 		private readonly CommentService _commentService;
 		private readonly IMapper _mapper;
 		private readonly LicenseFileService _licenseFileService;
-
-		public TrackManager(IUnitOfWork unitOfWork, AudioFileServices audioFileService, ImageFileServices imageFileService, IMyEmailService mailServices, TagManager tagService, AppsettingBinding appSettings, CommentService commentService, IMapper mapper, LicenseFileService licenseFileService)
+		private readonly NotificationManager _notificationManager;
+		public TrackManager(IUnitOfWork unitOfWork, AudioFileServices audioFileService, ImageFileServices imageFileService, IMyEmailService mailServices, TagManager tagService, AppsettingBinding appSettings, CommentService commentService, IMapper mapper, LicenseFileService licenseFileService, NotificationManager notificationManager)
 		{
 			_unitOfWork = unitOfWork;
 			_audioFileService = audioFileService;
@@ -54,6 +54,7 @@ namespace Services.Implementation
 			_commentService = commentService;
 			_mapper = mapper;
 			_licenseFileService = licenseFileService;
+			_notificationManager = notificationManager;
 		}
 		//create a track will always be private and not for sales, not until the publish is made will the track be decided to be public or not
 
@@ -297,10 +298,17 @@ namespace Services.Implementation
 					track.IsPublished = true;
 					await _unitOfWork.Repositories.trackRepository.Update(track);
 					await _unitOfWork.SaveChangesAsync();
+					 _notificationManager.ServerSendNotificationMail(new CreateNotificationForNewTracks()
+					{
+						Content = "new track publish : " + track.TrackName,
+						MessageName = "New Track Publish !",
+						TrackId = track.Id,
+						Weight = NotificationWeight.MINOR,
+					});
 				}
 			}
 			await _unitOfWork.SaveChangesAsync();
-
+			
 		}
 		// remove the file from public for access
 		public async Task<Result> PulldownTrack(int trackId)
