@@ -24,7 +24,12 @@ internal class Program
 				TemplateAbsolutePath = newAbsolutePath
 			});
 		}
-
+		foreach( var path in appsettingsBinding.DefaultContentRelativePath)
+		{
+			var wwwrootPath = builder.Environment.WebRootPath;
+			var newAbsolutePath = Path.Combine(wwwrootPath, path.ContentPathWWWRoot);
+			path.ContentPathWWWRoot = newAbsolutePath;
+		}
 		builder.Services.AddSingleton(appsettingsBinding);
 		builder.Services.Configure<FormOptions>(options => {
 			options.MultipartBodyLengthLimit = 10000000000;//tam 10GB

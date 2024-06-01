@@ -1,6 +1,7 @@
 ﻿using FluentEmail.Core;
 using FluentEmail.Core.Models;
 using Services.Interface;
+using Shared;
 using Shared.ConfigurationBinding;
 using Shared.Helper;
 using Shared.IdentityConfiguration;
@@ -10,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,12 +21,14 @@ namespace Services.Implementation
     {
         private readonly AppsettingBinding appsettingBinding;
         private readonly IFluentEmail _fluentEmailServices;
-
+        private readonly string LOGO_DEFAULT_IMAGE;
         public MailServices(AppsettingBinding appsettingBinding, IFluentEmail fluentEmailServices)
         {
             this.appsettingBinding = appsettingBinding;
             _fluentEmailServices = fluentEmailServices;
-        }
+            byte[] imageBytes = File.ReadAllBytes( (this.appsettingBinding.DefaultContentRelativePath.FirstOrDefault(d => d.ContentName == "DefaultLogo")) .ContentPathWWWRoot) ;
+			LOGO_DEFAULT_IMAGE =  Convert.ToBase64String(imageBytes);
+		}
         public async Task<Result> SendConfirmationEmail(CustomIdentityUser user,EmailMetaData emailMetaData, ConfirmEmailModel confirmEmailModel,CancellationToken cancellationToken = default)
         {
             var getConfirmationEmailTemplate = appsettingBinding.MailTemplateAbsolutePath
@@ -36,11 +40,21 @@ namespace Services.Implementation
         }
         public async Task<Result> SendEmailWithTemplate<T>(EmailMetaData emailMetaData, string templatePath,T templateModel, CancellationToken cancellation = default)
         {
-            var emailSendingConfig = _fluentEmailServices
+			//emailMetaData.LogoImageBase64 = LOGO_DEFAULT_IMAGE;
+			var emailSendingConfig = _fluentEmailServices
                 .To(emailMetaData.ToEmail)
                 .Subject(emailMetaData.Subject);
             emailSendingConfig.UsingTemplateFromFile(templatePath, templateModel);
-           var sendResult =  await emailSendingConfig.SendAsync(cancellation);
+            emailSendingConfig.Attach(new Attachment() 
+            {
+                ContentId = "logo",
+                ContentType = "image/png",
+                Data = new MemoryStream(File.ReadAllBytes((this.appsettingBinding.DefaultContentRelativePath.FirstOrDefault(d => d.ContentName == "DefaultLogo")).ContentPathWWWRoot)),
+                IsInline = true,
+                Filename = "none.png",
+            });
+
+            var sendResult =  await emailSendingConfig.SendAsync(cancellation);
             if (sendResult.Successful is false)
                 return Result.Fail();
             return Result.Success();

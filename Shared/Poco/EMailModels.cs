@@ -39,7 +39,10 @@ namespace Shared.Poco
         public DateTime SendTime { get; set; }
         public string NotificationType { get; set; }
         public string Weight { get; set; }
-        public TrackResponseDto TrackToPublish { get; set; }
-        public UserProfileDto UserToSend { get; set; }
+        public string? LogoImgBase64 { get; set; }
+        public string? TrackImageBase64 { get; set; }
+
+        public TrackResponseDto? TrackToPublish { get; set; }
+        public UserProfileDto? UserToSend { get; set; }
     }
 }

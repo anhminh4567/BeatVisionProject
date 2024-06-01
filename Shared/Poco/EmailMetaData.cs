@@ -14,6 +14,7 @@ namespace Shared.Poco
         public IEnumerable<string>? Ccs { get; set; }
         public string? BodyString { get; set; }// do not require if the body is html
         public string? AttachmentPath { get; set; }
+		public string? LogoImageBase64 { get; set; }
         public IList<EmailAttachments>? Attachments { get; set; }// require only when the send with attachment is used
 
 		public EmailMetaData(string toEmail, string subject, IEnumerable<string>? bccs, IEnumerable<string>? ccs, string? bodyString, string? attachmentPath, IList<EmailAttachments>? attachments)

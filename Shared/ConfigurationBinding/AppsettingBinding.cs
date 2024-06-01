@@ -16,6 +16,8 @@ namespace Shared.ConfigurationBinding
         public IEnumerable<MailTemplateRelativePath> MailTemplateRelativePath { get; set; }
         public IList<MailTemplateAbsolutePath> MailTemplateAbsolutePath { get; set; } = new List<MailTemplateAbsolutePath>();
 		public AppConstraints AppConstraints { get; set; }
+        public IList<DefaultRelativePath> DefaultContentRelativePath { get; set; }
+
 	}
     public class JwtSection
     {
@@ -69,5 +71,10 @@ namespace Shared.ConfigurationBinding
 		public string[] AllowImageExension { get; set; }
         public string[] AllowLicenseExtension { get; set; }
 	}
-    
+    public class DefaultRelativePath
+    {
+        public string ContentName { get; set; }
+		public string ContentPathWWWRoot { get; set; }
+
+	}
 }

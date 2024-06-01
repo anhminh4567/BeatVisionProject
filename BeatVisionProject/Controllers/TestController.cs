@@ -6,6 +6,7 @@ using Services.Implementation;
 using Services.Interface;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
+using Shared.Helper;
 using Shared.Poco;
 using Shared.RequestDto;
 using Shared.ResponseDto;
@@ -85,8 +86,9 @@ namespace BeatVisionProject.Controllers
 				SendTime = DateTime.Now,
 				Title = "Test email",
 				TrackToPublish = null,
-				UserToSend = _mapper.Map<UserProfileDto>( await _unitOfWork.Repositories.userProfileRepository.GetById(13) ),
+				UserToSend = _mapper.Map<UserProfileDto>( await _unitOfWork.Repositories.userProfileRepository.GetById(11) ),
 				Weight = NotificationWeight.MINOR.ToString(),
+				LogoImgBase64 = "logo"//ImageFile.ConvertImageToBase64String( (_appsettings.DefaultContentRelativePath.FirstOrDefault(c => c.ContentName == "DefaultLogo")).ContentPathWWWRoot)
 			};
 			await _mailService.SendEmailWithTemplate(meta, (_appsettings.MailTemplateAbsolutePath.FirstOrDefault(t => t.TemplateName == "NotificationEmail")).TemplateAbsolutePath ,notiModel);
 

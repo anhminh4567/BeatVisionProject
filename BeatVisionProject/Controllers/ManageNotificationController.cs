@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Services.Implementation;
 using Shared.ConfigurationBinding;
 using Shared.RequestDto;
+using System.Security.Cryptography;
 
 namespace BeatVisionProject.Controllers
 {
@@ -29,6 +30,9 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(sendResult.Error.StatusCode, sendResult.Error);
 			return Ok();
 		}
-		
+		public async Task<ActionResult> AdminCreateNotification()
+		{
+			return Ok();
+		}
 	}
 }
