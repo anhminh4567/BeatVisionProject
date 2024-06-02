@@ -9,6 +9,7 @@ using Shared.ResponseDto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +31,7 @@ namespace Services.Implementation
 		}
 		public async Task<Result<string>> UploadLicenseFile(Stream fileStream, string fileName, string contentType, CancellationToken cancellationToken = default)
 		{
-			var error = new Error();
+			var error = new Error() { StatusCode = (int)HttpStatusCode.BadRequest };
 			var allowedLicenseExtionsion = _appsettings.AppConstraints.AllowLicenseExtension;
 			var licenseFolderDirectory = ApplicationStaticValue.BlobLicenseDirectory;
 			var fileExtensionResult = FileHelper.ExtractFileExtention(fileName);
@@ -46,7 +47,7 @@ namespace Services.Implementation
 			}
 			if (FileHelper.CheckFileNameAgainstRegrex(getFileNameResult.Value, _allowedFileNameRegrex) is false)
 			{
-				error.ErrorMessage = "file name not allowd, only normal and number, no whitespace, allow underscore and comma";
+				error.ErrorMessage = "file name not allowed, only letter and number, no whitespace, allow underscore and comma";
 				return Result<string>.Fail(error);
 			}
 			var fileExtension = fileExtensionResult.Value;
