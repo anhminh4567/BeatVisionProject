@@ -35,6 +35,10 @@ namespace Repository.Interface
 		IRepositoryBase<Tag> tagRepository { get; set; }
 		IRepositoryBase<BlobFileData> blobFileDataRepository { get; set; }
 
+        // ORDER
+        IRepositoryBase<Order> orderRepository { get; set; }
+		IRepositoryBase<OrderItem> orderItemRepository { get; set; }
+		IRepositoryBase<OrderTransaction> orderTransactionRepository { get; set; }
 
 	}
 }

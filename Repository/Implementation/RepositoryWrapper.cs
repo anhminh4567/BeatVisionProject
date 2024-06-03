@@ -11,7 +11,7 @@ namespace Repository.Implementation
 {
     public class RepositoryWrapper : IRepositoryWrapper
     {
-		public RepositoryWrapper(ICustomIdentityUserRepository customIdentityUser, ICustomIdentityUserLoginsRepository customIdentityUserLogins, ICustomIdentityUserClaimsRepository customIdentityUserClaims, ICustomIdentityUserTokenRepository customIdentityUserToken, ICustomIdentityRoleRepository customIdentityRole, ICustomIdentityRoleClaimRepository customIdentityRoleClaim, ICustomIdentityUserRoleRepository customIdentityUserRole, IRepositoryBase<UserProfile> userProfileRepository, IRepositoryBase<Notification> notificationRepository, IRepositoryBase<Message> messageRepository, IRepositoryBase<CartItem> cartItemRepository, IRepositoryBase<Comment> commentRepository, IRepositoryBase<TrackComment> trackCommentRepository, IRepositoryBase<Coupon> couponRepository, IRepositoryBase<Track> trackRepository, IRepositoryBase<TrackLicense> trackLicenseRepository, IRepositoryBase<Tag> tagRepository, IRepositoryBase<BlobFileData> blobFileDataRepository)
+		public RepositoryWrapper(ICustomIdentityUserRepository customIdentityUser, ICustomIdentityUserLoginsRepository customIdentityUserLogins, ICustomIdentityUserClaimsRepository customIdentityUserClaims, ICustomIdentityUserTokenRepository customIdentityUserToken, ICustomIdentityRoleRepository customIdentityRole, ICustomIdentityRoleClaimRepository customIdentityRoleClaim, ICustomIdentityUserRoleRepository customIdentityUserRole, IRepositoryBase<UserProfile> userProfileRepository, IRepositoryBase<Notification> notificationRepository, IRepositoryBase<Message> messageRepository, IRepositoryBase<CartItem> cartItemRepository, IRepositoryBase<Comment> commentRepository, IRepositoryBase<TrackComment> trackCommentRepository, IRepositoryBase<Coupon> couponRepository, IRepositoryBase<Track> trackRepository, IRepositoryBase<TrackLicense> trackLicenseRepository, IRepositoryBase<Tag> tagRepository, IRepositoryBase<BlobFileData> blobFileDataRepository, IRepositoryBase<Order> orderRepository, IRepositoryBase<OrderItem> orderItemRepository, IRepositoryBase<OrderTransaction> orderTransactionRepository)
 		{
 			this.customIdentityUser = customIdentityUser;
 			this.customIdentityUserLogins = customIdentityUserLogins;
@@ -31,6 +31,9 @@ namespace Repository.Implementation
 			this.trackLicenseRepository = trackLicenseRepository;
 			this.tagRepository = tagRepository;
 			this.blobFileDataRepository = blobFileDataRepository;
+			this.orderRepository = orderRepository;
+			this.orderItemRepository = orderItemRepository;
+			this.orderTransactionRepository = orderTransactionRepository;
 		}
 
 		public ICustomIdentityUserRepository customIdentityUser { get; set; }
@@ -61,5 +64,10 @@ namespace Repository.Implementation
 
 		public IRepositoryBase<Tag> tagRepository { get; set; }
 		public IRepositoryBase<BlobFileData> blobFileDataRepository { get; set; }
+
+		//ORDER
+		public IRepositoryBase<Order> orderRepository { get; set; }
+		public IRepositoryBase<OrderItem> orderItemRepository { get; set; }
+		public IRepositoryBase<OrderTransaction> orderTransactionRepository { get; set; }
 	}
 }

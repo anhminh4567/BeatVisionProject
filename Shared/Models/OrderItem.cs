@@ -11,11 +11,11 @@ namespace Shared.Models
 		public int OrderId { get; set; }
 		public Order Order { get; set; }
 		public decimal OriginalPrice { get; set; }
-		public decimal CurrentPrice { get; set; }
-		public bool IsSale { get; set; }
-		public string TrackName { get; set; }
-		public string TrackLength { get; set; }
-		public int OrignalTrackId { get; set; }
-
+		public decimal CurrentPrice { get; set; } // == Price
+		public bool IsSale { get; set; } = false;
+		public string TrackName { get; set; } // == Name
+		public int TrackId { get; set; }
+		public Track? Track { get; set; }
+		//public int Quantity { get; set; }
 	}
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Net.payOS.Types;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.IdentityConfiguration;
@@ -35,8 +36,9 @@ namespace Shared.MapperProfiles
 			CreateMap<Notification, NotificationDto >();
 			CreateMap<Message, MessageDto>();
 			//CreateMap<, >();
-			
-
+			//Order mapping
+			CreateMap<CreatePaymentResult, CreatePaymentResultDto>();
+			CreateMap<PaymentLinkInformation, PaymentLinkInformationResultDto>();
 
 		}
 	}

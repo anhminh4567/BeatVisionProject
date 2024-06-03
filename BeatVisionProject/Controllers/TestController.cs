@@ -67,8 +67,9 @@ namespace BeatVisionProject.Controllers
 			return Ok();
 		}
 		[HttpPost("validate-with-regrex")]
-		public async Task<ActionResult> TestValidatoin([FromForm]CreateTrackDto createTrackDto)
+		public async Task<ActionResult> TestValidatoin()//[FromForm]CreateTrackDto createTrackDto)
 		{
+			var httpContext = HttpContext;
 			return Ok();
 		}
 		[HttpPost("send-noti-mail")]

@@ -34,21 +34,21 @@ namespace Services.Implementation
 			_mapper = mapper;
 		}
 
-		public async Task<IList<CartItemDto>> GetAllUserItems(UserProfile userProfile)
+		public async Task<IList<CartItemDto>> GetAllUserCartItems(UserProfile userProfile)
 		{
 			var getResult = (await _unitOfWork.Repositories.cartItemRepository
 				.GetByCondition(c => c.UserId == userProfile.Id)).ToList();
 			var mappedResult = _mapper.Map<IList<CartItemDto>>(getResult);
 			return mappedResult;
 		}
-		public async Task<CartItemDto?> GetUserItem(UserProfile userProfile, int itemId)
+		public async Task<CartItemDto?> GetUserCartItem(UserProfile userProfile, int itemId)
 		{
 			var getResult = (await _unitOfWork.Repositories.cartItemRepository
 				.GetByCondition(item => item.UserId == userProfile.Id && item.Id == itemId)).FirstOrDefault();
 			var mappedResult = _mapper.Map<CartItemDto>(getResult);
 			return mappedResult;
 		}
-		public async Task RemoveUserItem(UserProfile userProfile, int itemId)
+		public async Task RemoveUserCartItem(UserProfile userProfile, int itemId)
 		{
 			var getResult = (await _unitOfWork.Repositories.cartItemRepository
 				.GetByCondition(item => item.UserId == userProfile.Id && item.Id == itemId)).FirstOrDefault();
@@ -59,7 +59,7 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 
 		}
-		public async Task<CartItemDto> AddUserItem(UserProfile userProfile, CartItemType type, int itemId)
+		public async Task<CartItemDto> AddUserCartItem(UserProfile userProfile, CartItemType type, int itemId)
 		{
 			var newItem = new CartItem()
 			{

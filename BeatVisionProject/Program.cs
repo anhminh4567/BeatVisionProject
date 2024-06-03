@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
 internal class Program
 {
 	private static void Main(string[] args)
@@ -83,10 +84,13 @@ internal class Program
 			});
 		});
 		builder.Services.AddServicesLayer(appsettingsBinding);
-
+		builder.Services.Configure<ForwardedHeadersOptions>(options =>
+		{
+			options.ForwardedHeaders = ForwardedHeaders.All;
+		});
 		//builder.Services.AddIdentity();
 		var app = builder.Build();
-
+		app.UseForwardedHeaders();
 		// Configure the HTTP request pipeline.
 		if (app.Environment.IsDevelopment())
 		{
@@ -98,8 +102,17 @@ internal class Program
 		app.UseStaticFiles();
 		app.UseAuthentication();
 		app.UseAuthorization();
-
-		app.MapControllers();
+		app.UseRouting();
+		app.UseEndpoints((endpoints) =>
+		{
+			endpoints.MapControllers();
+			endpoints.MapGet("/confirm-webhook", async (context) =>
+			{
+				var httpContext = context;
+				Console.WriteLine("confirm webhook");
+			});
+		});
+		//app.MapControllers();
 
 		app.Run();
 	}

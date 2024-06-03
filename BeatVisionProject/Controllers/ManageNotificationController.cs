@@ -30,7 +30,13 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(sendResult.Error.StatusCode, sendResult.Error);
 			return Ok();
 		}
+		[HttpPost("to-all")]
 		public async Task<ActionResult> AdminCreateNotification()
+		{
+			return Ok();
+		}
+		[HttpPost("to-all-subscriber")]
+		public async Task<ActionResult> AdminCreateNotificationToSubscriber()
 		{
 			return Ok();
 		}

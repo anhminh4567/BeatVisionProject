@@ -46,6 +46,7 @@ namespace Repository
 
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<OrderTransaction> OrderTransactions { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             base.OnConfiguring(optionsBuilder);
@@ -198,13 +199,20 @@ namespace Repository
             
             });
             builder.Entity<Order>(entity => {
-                entity.HasMany(o => o.Items)
+                entity.HasMany(o => o.OrderItems)
+                    .WithOne(o => o.Order)
+                    .HasForeignKey(o => o.OrderId);
+                entity.HasMany(o => o.OrderTransactions)
                     .WithOne(o => o.Order)
                     .HasForeignKey(o => o.OrderId);
             });
             builder.Entity<OrderItem>(entity =>
             {
 
+            });
+            builder.Entity<OrderTransaction>(entity => 
+            {
+                
             });
         }
 

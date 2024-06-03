@@ -15,17 +15,25 @@ namespace Shared.Models
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
-		public DateTime CreateDate { get; set; } = DateTime.Now;
 		public DateTime PaidDate { get; set; } 
 		public string Description { get; set; }
 		public int UserId { get; set; }
 		public UserProfile User { get; set; }
-		public decimal CurrentPrice { get; set; }
-		public decimal OriginalPrice { get; set; }
-		public bool IsSale { get; set; }
+		//public bool IsSale { get; set; }
+		public int OriginalPrice { get; set; }
+		
+		// tu day tro xuong se le phan lien quan toi payment
+		// tu day tro xuong se le phan lien quan toi payment
 		[Column(TypeName = "nvarchar(30)")]
-		public OrderStatus Status { get; set; } = OrderStatus.WAIT_FOR_PAYMENT;
-		public IList<OrderItem> Items { get; set; } = new List<OrderItem>();
+		public OrderStatus Status { get; set; } = OrderStatus.PENDING; // =status
+		public int Price { get; set; } // == Amount 
+		public int? PricePaid { get; set; } // == AmountPaid
+		public int? PriceRemain { get; set; } // == AmountRemain
+		public DateTime? CreateDate { get; set; } // CreateAt
+		public DateTime? CancelAt { get; set; }	// CancelAt
+		public string? CancellationReasons { get; set; }
+		public IList<OrderTransaction>? OrderTransactions { get; set; } = new List<OrderTransaction>();
+		public IList<OrderItem>? OrderItems { get; set; } = new List<OrderItem>();
 
 	}
 }

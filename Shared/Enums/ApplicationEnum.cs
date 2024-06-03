@@ -36,7 +36,10 @@ namespace Shared.Enums
 		Track,User
 	}
 	public enum OrderStatus{
-		WAIT_FOR_PAYMENT = 0 , PAID = 1, CANCELLED = 2
+		PENDING = 0 , PAID = 1, CANCELLED = 2
 	}
-	
+//	PAID - Đã thanh toán
+//PENDING - Chờ thanh toán
+//PROCESSING - Đang xử lý
+//CANCELLED - Đã hủy
 }

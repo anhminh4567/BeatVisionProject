@@ -60,6 +60,9 @@ namespace Repository
 			services.AddScoped<IRepositoryBase<Tag>, RepositoryBase<Tag>>();
 			services.AddScoped<IRepositoryBase<BlobFileData>, RepositoryBase<BlobFileData>>();
             services.AddScoped<IRepositoryBase<Coupon>, RepositoryBase<Coupon>>();
+            services.AddScoped<IRepositoryBase<Order>, RepositoryBase<Order>>();
+			services.AddScoped<IRepositoryBase<OrderItem>, RepositoryBase<OrderItem>>();
+			services.AddScoped<IRepositoryBase<OrderTransaction>, RepositoryBase<OrderTransaction>>();
 
 
 			services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
