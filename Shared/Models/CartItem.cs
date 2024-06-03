@@ -12,7 +12,7 @@ namespace Shared.Models
 		public int? UserId { get; set; }
 		public UserProfile? User { get; set; }
 		[Column(TypeName = "nvarchar(30)")]
-		public CartItemType ItemType { get; set; }
+		public CartItemType ItemType { get; set; } = CartItemType.TRACK;
 		public int ItemId { get; set; }
 	}
 }

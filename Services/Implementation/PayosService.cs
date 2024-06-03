@@ -17,6 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Shared.Helper;
 using Microsoft.AspNetCore.Http;
+using Shared.Models;
 
 namespace Services.Implementation
 {
@@ -62,6 +63,34 @@ namespace Services.Implementation
 				return Result<CreatePaymentResultDto>.Fail(error);	
 			}
 		}
+		public async Task<Result<CreatePaymentResultDto>> CreateOrderPaymentLink(Order order)
+		{
+			var error = new Error();
+			PayOS payOS = new PayOS(CLIENT_ID, API_KEY, CHECKSUM_KEY);
+			List<ItemData> items = new List<ItemData>();
+			foreach(var item in order.OrderItems)
+			{
+				var newItem = new ItemData(name: item.TrackName, quantity: 1, price: int.Parse(item.CurrentPrice.ToString()));
+				items.Add(newItem);
+			}
+			var myOrderCode = GenerateRandomOrderCode();
+			PaymentData paymentData = new PaymentData(orderCode: myOrderCode, amount: order.Price, description: "Thanh toan don hang",
+				 items, cancelUrl: "http://localhost:5234/api/ManageOrder/cancel-order-hook", returnUrl: "http://localhost:5234/api/ManageOrder/success-order-hook");
+			try
+			{
+				CreatePaymentResult createPayment = await payOS.createPaymentLink(paymentData);
+				var paymentUrl = createPayment.checkoutUrl;
+				var mappedResult = _mapper.Map<CreatePaymentResultDto>(createPayment);
+				return Result<CreatePaymentResultDto>.Success(mappedResult);
+			}
+			catch (Exception ex)
+			{
+				error.isException = true;
+				error.StatusCode = StatusCodes.Status500InternalServerError;
+				error.ErrorMessage = ex.Message;
+				return Result<CreatePaymentResultDto>.Fail(error);
+			}
+		}
 		public async Task<Result<PaymentLinkInformation>> GetPaymentLinkInformation(long orderCode) 
 		{
 			var error = new Error();
@@ -69,12 +98,24 @@ namespace Services.Implementation
 			PaymentLinkInformation paymentLinkInfomation = await payOS.getPaymentLinkInformation(orderCode);
 			return Result<PaymentLinkInformation>.Success(paymentLinkInfomation);
 		}
+		
 		public async Task<Result<PaymentLinkInformation>> CancelPaymentUrl(long orderId, string reasons) 
 		{
 			var error = new Error();
-			PayOS payOS = new PayOS(CLIENT_ID, API_KEY, CHECKSUM_KEY);
-			var cancelResult = await payOS.cancelPaymentLink(orderId,reasons);
-			return Result<PaymentLinkInformation>.Success(cancelResult);
+			try
+			{
+				PayOS payOS = new PayOS(CLIENT_ID, API_KEY, CHECKSUM_KEY);
+				var cancelResult = await payOS.cancelPaymentLink(orderId, reasons);
+				return Result<PaymentLinkInformation>.Success(cancelResult);
+			}
+			catch(Exception ex) 
+			{
+				error.isException = true;
+				error.ErrorMessage = ex.Message;
+				error.StatusCode = StatusCodes.Status500InternalServerError;
+				return Result<PaymentLinkInformation>.Fail(error);
+			}
+			
 		}
 		public async Task<string> AddWebhookUrl()
 		{

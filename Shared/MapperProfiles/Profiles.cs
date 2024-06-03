@@ -39,7 +39,9 @@ namespace Shared.MapperProfiles
 			//Order mapping
 			CreateMap<CreatePaymentResult, CreatePaymentResultDto>();
 			CreateMap<PaymentLinkInformation, PaymentLinkInformationResultDto>();
-
+			CreateMap<Order, OrderDto>();
+			CreateMap<OrderItem, OrderItemDto >();
+			CreateMap<OrderTransaction, OrderTransactionDto >();
 		}
 	}
 }

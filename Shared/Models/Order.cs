@@ -15,10 +15,10 @@ namespace Shared.Models
 		[Key]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
 		public int Id { get; set; }
-		public DateTime PaidDate { get; set; } 
-		public string Description { get; set; }
+		public DateTime? PaidDate { get; set; } 
+		public string? Description { get; set; }
 		public int UserId { get; set; }
-		public UserProfile User { get; set; }
+		public UserProfile? User { get; set; }
 		//public bool IsSale { get; set; }
 		public int OriginalPrice { get; set; }
 		
@@ -32,6 +32,8 @@ namespace Shared.Models
 		public DateTime? CreateDate { get; set; } // CreateAt
 		public DateTime? CancelAt { get; set; }	// CancelAt
 		public string? CancellationReasons { get; set; }
+		public long? OrderCode { get; set; }
+		public string? PaymentLinkId { get; set; }
 		public IList<OrderTransaction>? OrderTransactions { get; set; } = new List<OrderTransaction>();
 		public IList<OrderItem>? OrderItems { get; set; } = new List<OrderItem>();
 

@@ -414,7 +414,7 @@ namespace Services.Implementation
 				ToEmail = getUserIdentity.Email,
 				Attachments = emailAttachments,
 			};
-			var emailTemplatePath = _appSettings.MailTemplateRelativePath.FirstOrDefault(p => p.TemplateName == "DownloadTrackEmail")?.TemplatePathWWWRoot;
+			var emailTemplatePath = _appSettings.MailTemplateAbsolutePath.FirstOrDefault(p => p.TemplateName == "DownloadTrackEmail")?.TemplateAbsolutePath;
 			if (string.IsNullOrEmpty(emailTemplatePath))
 			{
 				return Result.Fail();

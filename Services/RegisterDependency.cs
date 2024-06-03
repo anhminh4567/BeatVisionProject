@@ -53,6 +53,7 @@ namespace Services
             services.AddScoped<NotificationManager>();
             services.AddScoped<LicenseFileService>();
             services.AddScoped<PayosService>();
+            services.AddScoped<OrderManager>();
 			services.AddAuthentication(opt => 
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

@@ -33,12 +33,29 @@ namespace Services.Implementation
 			_appsettings = appsettings;
 			_mapper = mapper;
 		}
-
+		public async Task<Result<IList<CartItemDto>>>GetAllUserCartItems(int userprofileid)
+		{
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userprofileid);
+			if (getUserProfile is null)
+				return Result<IList<CartItemDto>>.Fail();
+			var getResult = await GetAllUserCartItems(getUserProfile);
+			return Result<IList<CartItemDto>>.Success(getResult);
+		}
 		public async Task<IList<CartItemDto>> GetAllUserCartItems(UserProfile userProfile)
 		{
 			var getResult = (await _unitOfWork.Repositories.cartItemRepository
 				.GetByCondition(c => c.UserId == userProfile.Id)).ToList();
 			var mappedResult = _mapper.Map<IList<CartItemDto>>(getResult);
+			foreach (var cartItem in mappedResult)
+			{
+				var trackId = cartItem.ItemId;
+				if (cartItem.ItemType.Equals(CartItemType.TRACK))
+				{
+					var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile,Tags,Licenses");
+					if(getTrack is not null)
+						cartItem.Track = _mapper.Map<TrackResponseDto>(getTrack);
+				}
+			}
 			return mappedResult;
 		}
 		public async Task<CartItemDto?> GetUserCartItem(UserProfile userProfile, int itemId)
@@ -48,10 +65,22 @@ namespace Services.Implementation
 			var mappedResult = _mapper.Map<CartItemDto>(getResult);
 			return mappedResult;
 		}
+		public async Task<Result> RemoveUserCartItem(int userProfileId, int itemId)
+		{
+			var error = new Error();
+			var getuserprofile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getuserprofile is null)
+			{
+				error.ErrorMessage = " not user profile found";
+				return Result.Fail();
+			}
+			 await RemoveUserCartItem(getuserprofile, itemId);
+			return Result.Success();
+		}
 		public async Task RemoveUserCartItem(UserProfile userProfile, int itemId)
 		{
 			var getResult = (await _unitOfWork.Repositories.cartItemRepository
-				.GetByCondition(item => item.UserId == userProfile.Id && item.Id == itemId)).FirstOrDefault();
+				.GetByCondition(item => item.UserId == userProfile.Id && item.ItemId == itemId)).FirstOrDefault();
 			//var getItem = await GetUserItem(userProfile, itemId);
 			if (getResult is null)
 				return;
@@ -59,7 +88,24 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 
 		}
-		public async Task<CartItemDto> AddUserCartItem(UserProfile userProfile, CartItemType type, int itemId)
+		public async Task<Result<CartItemDto>> AddUserCartItem(int userProfileId, CartItemType typem, int itemId) 
+		{
+			var error = new Error();
+			var getuserprofile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if(getuserprofile is null)
+			{
+				error.ErrorMessage = " not user profile found";
+				return Result<CartItemDto>.Fail(error);
+			}
+			var cartItemDto = await AddUserCartItem(getuserprofile, typem, itemId);
+			if (cartItemDto is null)
+			{
+				error.ErrorMessage = "item already in cart";
+				return Result<CartItemDto>.Fail(error);
+			}
+			return Result<CartItemDto>.Success(cartItemDto);
+		}
+		public async Task<CartItemDto?> AddUserCartItem(UserProfile userProfile, CartItemType type, int itemId)
 		{
 			var newItem = new CartItem()
 			{
@@ -67,6 +113,9 @@ namespace Services.Implementation
 				ItemType = type,
 				ItemId = itemId
 			};
+			var checkIfItemInCart = (await _unitOfWork.Repositories.cartItemRepository.GetByCondition(ci => ci.UserId == userProfile.Id && ci.ItemId == itemId)).FirstOrDefault();
+			if (checkIfItemInCart is not null)// mean item exist
+				return null;
 			var result = await _unitOfWork.Repositories.cartItemRepository.Create(newItem);
 			await _unitOfWork.SaveChangesAsync();
 			var mappedResult = _mapper.Map<CartItemDto>(result);

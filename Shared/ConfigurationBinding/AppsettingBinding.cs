@@ -70,6 +70,7 @@ namespace Shared.ConfigurationBinding
         public string[] AllowAudioExtension { get; set; }
 		public string[] AllowImageExension { get; set; }
         public string[] AllowLicenseExtension { get; set; }
+		public int LinkExpirationTimeMinute { get; set; }
 	}
     public class DefaultRelativePath
     {

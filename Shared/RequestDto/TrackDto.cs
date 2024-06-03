@@ -63,7 +63,7 @@ namespace Shared.RequestDto
 		[Required]
 		public bool IsTrackPaid { get; set; } = false;
 		[AllowNull]
-		[Range(10000, 5000000)]
+		[Range(3000, 5000000)]
 		public decimal? Price { get; set; } = 0;
 	}
 	public class RemovePublishTrackDto

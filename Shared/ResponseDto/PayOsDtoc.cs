@@ -39,4 +39,17 @@ namespace Shared.ResponseDto
 	public class TransactionResultDto
 	{
 	}
+	public class PayosReturnData
+	{
+		
+		public string code { get; set; }
+		public string id { get; set; }
+		public bool cancel { get; set; }
+		public string status { get; set; }
+		public long orderCode { get; set; }
+		//[FromQuery] string id,
+		//	[FromQuery] bool cancel,
+		//	[FromQuery] string status,
+		//	[FromQuery] long orderCode
+	}
 }

@@ -11,7 +11,7 @@ namespace Shared.ResponseDto
 		public int? UserId { get; set; }
 		public CartItemType ItemType { get; set; }
 		public int ItemId { get; set; }
-		public IList<TrackDto>? Tracks { get; set; }
+		public TrackResponseDto? Track { get; set; }
 	
 	}
 }

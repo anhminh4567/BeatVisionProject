@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Services.Implementation;
 using Shared.ConfigurationBinding;
+using Shared.Enums;
+using Shared.RequestDto;
+using Shared.ResponseDto;
+using System.Runtime.CompilerServices;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace BeatVisionProject.Controllers
@@ -13,12 +17,17 @@ namespace BeatVisionProject.Controllers
 	{
 		private readonly AppsettingBinding _appsettings;
 		private readonly PayosService _payOsService;
+		private readonly OrderManager _orderManager;
+		private readonly AppUserManager _userManager;
 
-		public ManageOrderController(AppsettingBinding appsettings, PayosService payOsService)
+		public ManageOrderController(AppsettingBinding appsettings, PayosService payOsService, OrderManager orderManager, AppUserManager userManager)
 		{
 			_appsettings = appsettings;
 			_payOsService = payOsService;
+			_orderManager = orderManager;
+			_userManager = userManager;
 		}
+
 		[HttpGet("get-payment-result")]
 		public async Task<ActionResult> GetPaymentUrl()
 		{
@@ -38,50 +47,94 @@ namespace BeatVisionProject.Controllers
 			var cancelResult = await _payOsService.CancelPaymentUrl(orderCode, reason);
 			return Ok(cancelResult);
 		}
-		[HttpGet("confirm-webhook")]
-		public async Task<ActionResult> ConfirmWebhook()
+		[HttpPost("add-cart-item")]
+		public async Task<ActionResult> AddCartItem([FromForm]AddItemToCartModel addItemToCartModel )
 		{
-			var result = await _payOsService.AddWebhookUrl();
-			return Ok(result);
-		}
-		[HttpGet("receive-webhook")]
-		public async Task<ActionResult> ReceiveWebhook()
-		{
-			//var result = await _payOsService.AddWebhookUrl();
-			var httpContext = HttpContext;
+			var addResult = await _userManager.AddUserCartItem(addItemToCartModel.UserId,CartItemType.TRACK,addItemToCartModel.ItemId);
+			if(addResult.isSuccess is false)
+			{
+				return StatusCode(addResult.Error.StatusCode,addResult.Error);
+			}
 			return Ok();
 		}
+		[HttpDelete("remove-cart-item")]
+		public async Task<ActionResult> RemoveCartItem([FromQuery] RemoveItemFromCartModel removeItemFromCartModel)
+		{
+			var addResult = await _userManager.RemoveUserCartItem(removeItemFromCartModel.UserId, removeItemFromCartModel.ItemId);
+			if (addResult.isSuccess is false)
+			{
+				return StatusCode(addResult.Error.StatusCode, addResult.Error);
+			}
+			return Ok();
+		}
+		[HttpGet("get-user-cart-items")]
+		public async Task<ActionResult> GetUserCartItems([FromQuery] int userId) 
+		{
+			if (userId <= 0)
+				return BadRequest();
+			var getResult = await _userManager.GetAllUserCartItems(userId);
+			if(getResult.isSuccess is false)
+				return StatusCode(getResult.Error.StatusCode,getResult.Error);
+			return Ok(getResult.Value);
+		}
+		[HttpPost("checkout")]
+		public async Task<ActionResult> Checkout([FromForm] int userProfileId)
+		{
+			if (userProfileId <= 0)
+				return BadRequest();
+			var checkoutResult = await _orderManager.Checkout(userProfileId);
+			if(checkoutResult.isSuccess is false)
+				return StatusCode(checkoutResult.Error.StatusCode,checkoutResult.Error);
+			if(checkoutResult.Value is null)//if order is free
+			{
+				return StatusCode(StatusCodes.Status204NoContent);
+			}
+			return Ok(checkoutResult.Value);
+		}
+		//[HttpGet("confirm-webhook")]
+		//public async Task<ActionResult> ConfirmWebhook()
+		//{
+		//	var result = await _payOsService.AddWebhookUrl();
+		//	return Ok(result);
+		//}
+		//[HttpGet("receive-webhook")]
+		//public async Task<ActionResult> ReceiveWebhook()
+		//{
+		//	//var result = await _payOsService.AddWebhookUrl();
+		//	var httpContext = HttpContext;
+		//	return Ok();
+		//}
 		[HttpGet("cancel-order-hook")]
-		public async Task<ActionResult> CancelOrder(
-		[FromQuery] string code,
-			[FromQuery] string id,
-			[FromQuery] bool cancel,
-			[FromQuery] string status,
-			[FromQuery] long orderCode)
+		public async Task<ActionResult> CancelOrder([FromQuery] PayosReturnData payosReturnData)
 		{
 			//var result = await _payOsService.AddWebhookUrl();
 			var httpContext = HttpContext;
 			var json = new JsonResult(new { StatusCode  = 200, description =  "yea shit work for cancel" });
+			var getOrder = await _orderManager.GetOrderByOrderCode(payosReturnData.orderCode);
+			var paidResult = await _orderManager.OnReturnUrl(payosReturnData,getOrder);
 			var scheme = HttpContext.Request.Scheme;
 			var host = HttpContext.Request.Host;
 			var fullUrl = $"{scheme}://{host}/swagger/index.html";
 			return Redirect(fullUrl);
 		}
-		[HttpGet("success-order")]
-		public async Task<ActionResult> SuccessOrder([FromQuery] string code,
-			[FromQuery] string id,
-			[FromQuery] bool cancel,
-			[FromQuery] string status,
-			[FromQuery] long orderCode)
+		[HttpGet("success-order-hook")]
+		public async Task<ActionResult> SuccessOrder([FromQuery] PayosReturnData payosReturnData)
 		{
 			//var result = await _payOsService.AddWebhookUrl();
 			var httpContext = HttpContext;
+			var getOrder = await _orderManager.GetOrderByOrderCode(payosReturnData.orderCode);
+			var cancelResult = await _orderManager.OnCancelUrl(payosReturnData,getOrder);
 			var scheme = HttpContext.Request.Scheme;
 			var host = HttpContext.Request.Host;
 			var fullUrl = $"{scheme}://{host}/swagger/index.html";
 			return Redirect(fullUrl);
 		}
-
+		//[FromQuery]
+		//string code,
+		//	[FromQuery] string id,
+		//	[FromQuery] bool cancel,
+		//	[FromQuery] string status,
+		//	[FromQuery] long orderCode
 
 	}
 }
