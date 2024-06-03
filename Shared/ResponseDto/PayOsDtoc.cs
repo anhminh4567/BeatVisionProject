@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Net.payOS.Types;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;

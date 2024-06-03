@@ -29,6 +29,9 @@ namespace Services.Implementation
 		private readonly AppsettingBinding _appsettings;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
+		private const string CURRENT_WEBHOOK = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
+		private const string CURRENT_RETURN_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/success-order-hook";
+		private const string CURRENT_CANCEL_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/cancel-order-hook";
 
 		public PayosService(AppsettingBinding appsettings, IUnitOfWork unitOfWork, IMapper mapper)
 		{
@@ -47,7 +50,7 @@ namespace Services.Implementation
 
 			var myOrderCode = GenerateRandomOrderCode();
 			PaymentData paymentData = new PaymentData(orderCode: myOrderCode, amount: 2000, description: "Thanh toan don hang",
-				 items, cancelUrl: "http://localhost:5234/api/ManageOrder/cancel-order-hook", returnUrl: "http://localhost:5234/api/ManageOrder/success-order");
+				 items, cancelUrl: CURRENT_CANCEL_URL, returnUrl: CURRENT_RETURN_URL);
 			try
 			{
 				CreatePaymentResult createPayment = await payOS.createPaymentLink(paymentData);
@@ -70,12 +73,12 @@ namespace Services.Implementation
 			List<ItemData> items = new List<ItemData>();
 			foreach(var item in order.OrderItems)
 			{
-				var newItem = new ItemData(name: item.TrackName, quantity: 1, price: int.Parse(item.CurrentPrice.ToString()));
+				var newItem = new ItemData(name: item.TrackName, quantity: 1, price: Convert.ToInt32(item.CurrentPrice));
 				items.Add(newItem);
 			}
 			var myOrderCode = GenerateRandomOrderCode();
 			PaymentData paymentData = new PaymentData(orderCode: myOrderCode, amount: order.Price, description: "Thanh toan don hang",
-				 items, cancelUrl: "http://localhost:5234/api/ManageOrder/cancel-order-hook", returnUrl: "http://localhost:5234/api/ManageOrder/success-order-hook");
+				 items, cancelUrl: CURRENT_CANCEL_URL, returnUrl: CURRENT_RETURN_URL);
 			try
 			{
 				CreatePaymentResult createPayment = await payOS.createPaymentLink(paymentData);
@@ -117,44 +120,67 @@ namespace Services.Implementation
 			}
 			
 		}
-		public async Task<string> AddWebhookUrl()
+		//public async Task<string> AddWebhookUrl()
+		//{
+
+		//	PayOS payOS = new PayOS(clientId: CLIENT_ID, apiKey: API_KEY, checksumKey: CHECKSUM_KEY);
+		//	var webhookUrl = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
+		//	//var webhookUrl = "https://localhost/api/ManageOrder/receive-webhook";
+
+		//	//var confirmResult = await payOS.confirmWebhook("https://localhost:5234");
+
+		//	if (webhookUrl == null || webhookUrl.Length == 0)
+		//	{
+		//		throw new Exception("Invalid Parameter.");
+		//	}
+		//	string url = "https://api-merchant.payos.vn/confirm-webhook";
+		//	HttpClient httpClient = new HttpClient();
+		//	HttpResponseMessage responseApi = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, url)
+		//	{
+		//		Content = new StringContent("{\"webhookUrl\": \"" + webhookUrl + "\"}", Encoding.UTF8, "application/json"),
+		//		Headers =
+		//	{
+		//		{ "x-client-id", CLIENT_ID },
+		//		{ "x-api-key", API_KEY }
+		//	}
+		//	});
+		//	var body = await responseApi.Content.ReadAsStringAsync();
+		//	if (responseApi.IsSuccessStatusCode)
+		//	{
+		//		return webhookUrl;
+		//	}
+		//	if (responseApi.StatusCode == HttpStatusCode.NotFound)
+		//	{
+		//		throw new PayOSError("20", "Webhook URL invalid.");
+		//	}
+		//	if (responseApi.StatusCode == HttpStatusCode.Unauthorized)
+		//	{
+		//		throw new PayOSError("401", "Unauthorized.");
+		//	}
+		//	throw new PayOSError("20", "Internal Server Error.");
+		//}
+		public async Task ConfirmWebhook()
 		{
-
-			PayOS payOS = new PayOS(clientId: CLIENT_ID, apiKey: API_KEY, checksumKey: CHECKSUM_KEY);
-			var webhookUrl = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
-			//var webhookUrl = "https://localhost/api/ManageOrder/receive-webhook";
-
-			//var confirmResult = await payOS.confirmWebhook("https://localhost:5234");
-
-			if (webhookUrl == null || webhookUrl.Length == 0)
+			
+		}
+		public async Task<Result<WebhookData>> VerifyPayment(WebhookType webhookType)
+		{
+			var error = new Error();
+			PayOS payOS = new PayOS(CLIENT_ID, API_KEY, CHECKSUM_KEY);
+			try
 			{
-				throw new Exception("Invalid Parameter.");
+				var verifyResult = payOS.verifyPaymentWebhookData(webhookType);
+				if (verifyResult == null)
+					return Result<WebhookData>.Fail(error);
+				return Result<WebhookData>.Success(verifyResult);
 			}
-			string url = "https://api-merchant.payos.vn/confirm-webhook";
-			HttpClient httpClient = new HttpClient();
-			HttpResponseMessage responseApi = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, url)
+			catch (Exception ex) 
 			{
-				Content = new StringContent("{\"webhookUrl\": \"" + webhookUrl + "\"}", Encoding.UTF8, "application/json"),
-				Headers =
-			{
-				{ "x-client-id", CLIENT_ID },
-				{ "x-api-key", API_KEY }
+				error.isException = true;
+				error.ErrorMessage  = ex.Message;
+				error.StatusCode = StatusCodes.Status500InternalServerError;
+				return Result<WebhookData>.Fail(error);
 			}
-			});
-			var body = await responseApi.Content.ReadAsStringAsync();
-			if (responseApi.IsSuccessStatusCode)
-			{
-				return webhookUrl;
-			}
-			if (responseApi.StatusCode == HttpStatusCode.NotFound)
-			{
-				throw new PayOSError("20", "Webhook URL invalid.");
-			}
-			if (responseApi.StatusCode == HttpStatusCode.Unauthorized)
-			{
-				throw new PayOSError("401", "Unauthorized.");
-			}
-			throw new PayOSError("20", "Internal Server Error.");
 		}
 		private static long GenerateRandomOrderCode()
 		{

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Identity.Client;
+using Net.payOS.Types;
 using Repository.Interface;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
@@ -156,19 +157,28 @@ namespace Services.Implementation
 				await _unitOfWork.SaveChangesAsync();
 				return Result<CreatePaymentResultDto>.Fail(error);
 			}
+			var getPaymentResultValue = createPaymentLinkResult.Value;
+			order.OrderCode = getPaymentResultValue.orderCode;
+			order.PaymentLinkId = getPaymentResultValue.paymentLinkId;
+			await _unitOfWork.Repositories.orderRepository.Update(order);
+			await _unitOfWork.SaveChangesAsync();
 			var paymentLinkValue = createPaymentLinkResult.Value;
 			return Result<CreatePaymentResultDto>.Success(paymentLinkValue);
 		}
-		public async Task<Result> OnReturnUrl(PayosReturnData returnData, Order order)
+		public async Task<Result<Order>> OnReturnUrl(PayosReturnData returnData, Order order)
 		{
 			var error = new Error();
+			if(order.Status == OrderStatus.CANCELLED || order.Status == OrderStatus.PAID) // la khi webhook no tra ve truoc khi ve return url
+			{
+				return Result<Order>.Success(order);
+			}
 			order.Status = OrderStatus.PROCESSING;
 			order.PaidDate = DateTime.Now;
 			order.PriceRemain = 0;
 			await _unitOfWork.Repositories.orderRepository.Update(order);
 			await _unitOfWork.SaveChangesAsync();
-			await CheckPaymentSuccess(order.OrderCode.Value);
-			return Result.Fail();
+			//await CheckPaymentSuccess(order.OrderCode.Value);
+			return Result<Order>.Success(order);
 		}
 
 		public async Task<Result> OnCancelUrl(PayosReturnData returnData, Order order)
@@ -193,7 +203,7 @@ namespace Services.Implementation
 				return Result.Fail();
 			}
 			var returnedPaymentResult = cancelPaymentLinkResult.Value;
-			order.CancelAt = DateTimeHelper.UtcTimeToLocalTime(returnedPaymentResult.canceledAt);
+			order.CancelAt = returnedPaymentResult.canceledAt is null ? DateTime.Now : DateTimeHelper.UtcTimeToLocalTime(returnedPaymentResult.canceledAt);
 			order.CancellationReasons = returnedPaymentResult.cancellationReason;
 			order.Status = Shared.Enums.OrderStatus.CANCELLED;
 			await _unitOfWork.Repositories.orderRepository.Update(order);
@@ -229,6 +239,65 @@ namespace Services.Implementation
 			if (sendResult.isSuccess is false)
 				return Result.Fail(sendResult.Error);
 			return Result.Success();
+		}
+		public async Task<Result<Order>> OnWebhookPaymentReturn(WebhookType webhookType) 
+		{
+			var error = new Error();
+			var orderCode = webhookType.data.orderCode;
+			var getOrder = await GetOrderByOrderCode(orderCode);
+			var verifyDataResult = await  _payosService.VerifyPayment(webhookType);
+			if (verifyDataResult.isSuccess is false)
+			{
+				getOrder.CancelAt = DateTime.Now;
+				getOrder.CancellationReasons = "payment verification fail, might be network attack, ask admin for refund directly";
+				getOrder.Status = OrderStatus.CANCELLED;
+				await _unitOfWork.Repositories.orderRepository.Update(getOrder);
+				await _unitOfWork.SaveChangesAsync();
+				error.ErrorMessage = "verify payment seems to fail, try contact manager to ask for refund";
+				return Result<Order>.Fail(error);
+			}
+			var getPaymentLinkInformatoin = await _payosService.GetPaymentLinkInformation(orderCode);
+			getOrder.Status = OrderStatus.PAID;
+			getOrder.PricePaid = getOrder.Price;
+			getOrder.PriceRemain = 0;
+			getOrder.PaidDate = DateTime.Now;
+			await _unitOfWork.Repositories.orderRepository.Update(getOrder);
+			await _unitOfWork.SaveChangesAsync();
+			// PHAN NAY TRO DI LA DE UPDATE ORDERTRANSACTION
+			var getPaymentTransactions = getPaymentLinkInformatoin.Value.transactions;
+			IList<OrderTransaction> orderTransaction = new List<OrderTransaction>();
+			foreach(var transaction in getPaymentTransactions ) 
+			{
+				var newOrderTransaction = new OrderTransaction()
+				{
+					Reference = transaction.reference,
+					Amount = transaction.amount,
+					AccountNumber = transaction.accountNumber,
+					CounterAccountBankId = transaction.counterAccountBankId,
+					CounterAccountBankName = transaction.counterAccountBankName,
+					CounterAccountName = transaction.counterAccountName,
+					CounterAccountNumber = transaction.counterAccountNumber,
+					VirtualAccountName = transaction.virtualAccountName,
+					VirtualAccountNumber = transaction.virtualAccountNumber,
+					TransactionDateTime = transaction.transactionDateTime,
+					OrderId = getOrder.Id,
+				};
+				orderTransaction.Add(newOrderTransaction);
+			}
+			var getCurrentOrderTransaction = await _unitOfWork.Repositories.orderTransactionRepository.GetByCondition(ot => ot.OrderId == getOrder.Id);
+			if(getCurrentOrderTransaction != null && getCurrentOrderTransaction.Count() > 0) 
+			{
+				await _unitOfWork.Repositories.orderTransactionRepository.DeleteRange(getCurrentOrderTransaction);
+				await _unitOfWork.SaveChangesAsync();
+			}
+			var createResult = await _unitOfWork.Repositories.orderTransactionRepository.CreateRange(orderTransaction);
+			await _unitOfWork.SaveChangesAsync();
+			var getNewOrderTransaction = await _unitOfWork.Repositories.orderTransactionRepository.GetByCondition(ot => ot.OrderId == getOrder.Id);
+
+			getOrder.OrderTransactions = getNewOrderTransaction.ToList();
+			await _unitOfWork.Repositories.orderRepository.Update(getOrder);
+			await _unitOfWork.SaveChangesAsync();
+			return Result<Order>.Success(getOrder);
 		}
 		public async Task<Result> CheckPaymentSuccess(long orderCode)
 		{
@@ -311,12 +380,8 @@ namespace Services.Implementation
 			int totalPrice = 0;
 			foreach (var track in tracks)
 			{
-				var parsedInt = int.TryParse(track.Price.ToString(), out var result);
-				if (parsedInt is false)
-				{
-					continue;
-				}
-				totalPrice += result;
+				var parsedInt = Convert.ToInt32(track.Price);//.TryParse(track.Price.ToString(), out var result);
+				totalPrice += parsedInt;
 			}
 			return totalPrice;
 

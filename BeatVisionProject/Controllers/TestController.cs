@@ -70,7 +70,10 @@ namespace BeatVisionProject.Controllers
 		public async Task<ActionResult> TestValidatoin()//[FromForm]CreateTrackDto createTrackDto)
 		{
 			var httpContext = HttpContext;
-			return Ok();
+			var scheme = HttpContext.Request.Scheme;
+			var host = HttpContext.Request.Host;
+			var fullUrl = $"{scheme}://{host}/swagger/index.html";
+			return Redirect(fullUrl);
 		}
 		[HttpPost("send-noti-mail")]
 		public async Task<ActionResult> TestSendEmail()
