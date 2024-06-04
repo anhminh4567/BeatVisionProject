@@ -130,22 +130,30 @@ namespace Services
         {
             services.AddQuartz(options =>
             {
-                var demoJobKey = nameof(QuartzDemoServices);
-                var publishTrackServiceKey = nameof(PublishTrackBackgroundService);
+				//var demoJobKey = nameof(QuartzDemoServices);
+				//options.AddJob<QuartzDemoServices>(JobKey.Create(demoJobKey), config => { })
+				//    .AddTrigger(trigger => trigger
+				//        .ForJob(demoJobKey)
+				//        .WithSimpleSchedule(schedule =>
+				//        {
+				//            schedule.WithIntervalInSeconds(5).RepeatForever();
+				//        }));
 				options.UseMicrosoftDependencyInjectionJobFactory();
-                options.AddJob<QuartzDemoServices>(JobKey.Create(demoJobKey), config => { })
-                    .AddTrigger(trigger => trigger
-                        .ForJob(demoJobKey)
-                        .WithSimpleSchedule(schedule =>
-                        {
-                            schedule.WithIntervalInSeconds(5).RepeatForever();
-                        }));
-                options.AddJob<PublishTrackBackgroundService>(JobKey.Create(publishTrackServiceKey), config =>{ })
+				var publishTrackServiceKey = nameof(PublishTrackBackgroundService);
+				options.AddJob<PublishTrackBackgroundService>(JobKey.Create(publishTrackServiceKey), config =>{ })
                     .AddTrigger(trigger => trigger
                         .ForJob(publishTrackServiceKey)
                         .WithSimpleSchedule(schedule =>
                         {
                             schedule.WithIntervalInMinutes(2).RepeatForever();
+                        }));
+                var cancelUrlPaymentServiceKey = nameof(CancelOutdatePaymentlinkService);
+                options.AddJob<CancelOutdatePaymentlinkService>(JobKey.Create(cancelUrlPaymentServiceKey), config => { })
+                    .AddTrigger(trigger => trigger
+                        .ForJob(cancelUrlPaymentServiceKey)
+                        .WithSimpleSchedule(schedule =>
+                        {
+                            schedule.WithIntervalInMinutes(5).RepeatForever();
                         }));
             });
             services.AddQuartzHostedService(options =>

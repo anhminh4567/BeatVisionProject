@@ -6,6 +6,7 @@ namespace Shared.ResponseDto
 	{
 		public int? ReceiverId { get; set; }
 		public int? MessageId { get; set; }
+		public MessageDto? Message { get; set; }
 		public bool IsReaded { get; set; }
 		public DateTime ExpiredDate { get; set; }
 	}

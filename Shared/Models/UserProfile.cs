@@ -45,7 +45,7 @@ namespace Shared.Models
         public IList<UserProfile> Followings { get; set; } = new List<UserProfile>();
 	
 		public IList<Notification> Notifications { get; set; } = new List<Notification>();
-		public IList<Message> CreatedMessage { get; set; } = new List<Message>(); 
+		public IList<Message>? CreatedMessage { get; set; } = new List<Message>(); 
 
 
 	}

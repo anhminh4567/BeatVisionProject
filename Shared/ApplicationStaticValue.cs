@@ -28,9 +28,11 @@ namespace Shared
         public static readonly string ContentTypeWav = "audio/wav";
         public static readonly string ContentTypeMp3 = "audio/mpeg";
         public static readonly string ContentTypePdf = "application/pdf";
+        public static readonly string ContentTypeZip = "application/zip";
 
 
-        public static readonly string DefaultProfileImageName = "defaultprofile.jpg";
+
+		public static readonly string DefaultProfileImageName = "defaultprofile.jpg";
 		public static readonly string DefaultTrackImageName = "defaultSoundwave.jpg";
 
 		// AUDIO FILE CONVENTION

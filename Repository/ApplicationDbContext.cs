@@ -145,7 +145,8 @@ namespace Repository
 			builder.Entity<Message>(entity =>
 			{
 				entity.HasOne(m => m.Creator)
-				.WithMany(u => u.CreatedMessage).HasForeignKey(m => m.CreatorId);
+				.WithMany(u => u.CreatedMessage).HasForeignKey(m => m.CreatorId)
+                .IsRequired(false);
 			});
             builder.Entity<Notification>(entity => 
             {

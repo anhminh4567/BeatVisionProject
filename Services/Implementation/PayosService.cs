@@ -32,6 +32,9 @@ namespace Services.Implementation
 		private const string CURRENT_WEBHOOK = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
 		private const string CURRENT_RETURN_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/success-order-hook";
 		private const string CURRENT_CANCEL_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/cancel-order-hook";
+		//private const string CURRENT_WEBHOOK = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
+		//private const string CURRENT_RETURN_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/success-order-hook";
+		//private const string CURRENT_CANCEL_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/cancel-order-hook";
 
 		public PayosService(AppsettingBinding appsettings, IUnitOfWork unitOfWork, IMapper mapper)
 		{

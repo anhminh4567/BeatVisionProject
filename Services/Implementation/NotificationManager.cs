@@ -12,6 +12,7 @@ using Shared.Poco;
 using Shared.RequestDto;
 using Shared.ResponseDto;
 using StackExchange.Redis;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
@@ -84,19 +85,19 @@ namespace Services.Implementation
 					UserToSend = subscriber,
 					Weight = notificationForNewTracks.Weight.ToString(),
 				};
-				_mailService.SendEmailWithTemplate<NotificationEmailModel>(meta, _appsettings.MailTemplateAbsolutePath.FirstOrDefault(m => m.TemplateName.Equals("NotificationEmail")).TemplateAbsolutePath,notiModel) ;
+				_mailService.SendEmailWithTemplate<NotificationEmailModel>(meta, _appsettings.MailTemplateAbsolutePath.FirstOrDefault(m => m.TemplateName.Equals("NotificationEmail")).TemplateAbsolutePath, notiModel);
 			}
 			return Result.Success();
 		}
 		public async Task<Result> ServerSendNotificationMail_ToGroups(CreateMessageDto createMessageDto, params int[] profileId)
 		{
-			var getUser = await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => profileId.Contains(u.Id), null,"IdentityUser");
+			var getUser = await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => profileId.Contains(u.Id), null, "IdentityUser");
 			if (getUser == null)
 				return Result.Fail();
-			var result = await CreateNotification(createMessageDto,NotificationType.GROUP,NotificationWeight.MAJOR, profileId, true);
+			var result = await CreateNotification(createMessageDto, NotificationType.GROUP, NotificationWeight.MAJOR, profileId, true);
 			if (result.isSuccess is false)
 				return Result.Fail();
-			foreach( var user in  getUser) 
+			foreach (var user in getUser)
 			{
 				var meta = new EmailMetaData()
 				{
@@ -118,6 +119,33 @@ namespace Services.Implementation
 			}
 			return Result.Success();
 		}
+		public async Task<Result> ServerSendNotificationMail_ToUser(CreateMessageDto createMessageDto, int profileId)
+		{
+			var getUser = await _unitOfWork.Repositories.userProfileRepository.GetByIdInclude(profileId, "IdentityUser");//(u => profileId.Contains(u.Id), null, "IdentityUser");
+			if (getUser == null)
+				return Result.Fail();
+			var result = await CreateNotification(createMessageDto, NotificationType.SINGLE, NotificationWeight.MINOR, new int[] { profileId }, true);
+			if (result.isSuccess is false)
+				return Result.Fail();
+			var meta = new EmailMetaData()
+			{
+				ToEmail = getUser.IdentityUser.Email,
+				Subject = createMessageDto.MessageName,
+			};
+			var notiModel = new NotificationEmailModel()
+			{
+				Content = createMessageDto.Content,
+				NotificationType = NotificationType.GROUP.ToString(),
+				SendTime = DateTime.Now,
+				Title = createMessageDto.MessageName,
+				TrackToPublish = null,
+				UserToSend = _mapper.Map<UserProfileDto>(getUser),
+				Weight = createMessageDto.Weight.ToString(),
+			};
+			_mailService.SendEmailWithTemplate<NotificationEmailModel>(meta, _appsettings.MailTemplateAbsolutePath.FirstOrDefault(m => m.TemplateName.Equals("NotificationEmail")).TemplateAbsolutePath, notiModel);
+			return Result.Success();
+		}
+
 		public async Task RemoveExpiredMessage()
 		{
 			var currentDateTime = DateTime.Now;
@@ -150,12 +178,13 @@ namespace Services.Implementation
 			var newMessage = new Message()
 			{
 				Content = create.Content,
-				CreatorId = creatorId,
+				CreatorId = isServerMessage ? null : creatorId,
 				IsServerNotification = isServerMessage,
 				CreatedDate = createDate,
 				Type = sendScope,
 				MessageName = create.MessageName,
 				Weight = weight,
+
 			};
 			IList<Notification> receiversNoti = new List<Notification>();
 			try
@@ -218,6 +247,73 @@ namespace Services.Implementation
 				error.ErrorMessage = ex.Message;
 				return Result.Fail();
 			}
+		}
+		public async Task<Result<IList<NotificationDto>>> GetUserNotifications(int userProfileId, bool getIsNotReadOnly = false)
+		{
+			var error = new Error();
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getUserProfile == null)
+			{
+				error.ErrorMessage = "canot found user profile";
+				return Result<IList<NotificationDto>>.Fail(error);
+			}
+			IList<Notification> getList;
+			if(getIsNotReadOnly) 
+			{
+				getList = (await _unitOfWork.Repositories.notificationRepository
+				.GetByCondition(noti => noti.ReceiverId == userProfileId && noti.IsReaded == false, null, "Message")).ToList();
+			}
+			else
+			{
+				getList = (await _unitOfWork.Repositories.notificationRepository
+				.GetByCondition(noti => noti.ReceiverId == userProfileId, null, "Message")).ToList();
+			}
+			if(getList == null)
+			{
+				return Result<IList<NotificationDto>>.Fail(error);
+			}
+			var returnResult = _mapper.Map<IList<NotificationDto>>(getList);
+			return Result<IList<NotificationDto>>.Success(returnResult);
+		}
+		public async Task<Result> ReadNotification(int userProfileId, int messageId)
+		{
+			var error = new Error();
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getUserProfile == null)
+			{
+				error.ErrorMessage = "canot found user profile";
+				return Result.Fail(error);
+			}
+			var getNoti = ( await _unitOfWork.Repositories.notificationRepository
+				.GetByCondition(noti => noti.MessageId == messageId && noti.ReceiverId == userProfileId) ).FirstOrDefault();
+			if(getNoti is null)
+			{
+				error.ErrorMessage = "cannot found notification";
+				return Result.Fail(error);
+			}
+			getNoti.IsReaded = true;
+			await _unitOfWork.Repositories.notificationRepository.Update(getNoti);
+			await _unitOfWork.SaveChangesAsync();
+			return Result.Success();
+		}
+		public async Task<Result> ReadAllNotifications(int userProfileId)
+		{
+			var error = new Error();
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getUserProfile == null)
+			{
+				error.ErrorMessage = "canot found user profile";
+				return Result.Fail(error);
+			}
+			var getAllNotiNotRead = await _unitOfWork.Repositories.notificationRepository
+				.GetByCondition(noti => noti.ReceiverId == userProfileId && noti.IsReaded == false);
+			foreach(var noti in getAllNotiNotRead)
+			{
+				noti.IsReaded = true;
+				await _unitOfWork.Repositories.notificationRepository.Update(noti);
+			}
+			await _unitOfWork.SaveChangesAsync();
+			return Result.Success();
 		}
 		private async Task<IList<UserProfileDto>> GetAllSubscriber()
 		{

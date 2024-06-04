@@ -84,7 +84,19 @@ namespace Shared.RequestDto
 		[Range(1000, 5000000)]
 		public decimal Price { get; set; } = 0;
 	}
-	
+	public class RequestDownloadBoughtContentDto
+	{
+		[Required, NotNull]
+		[Range(0, int.MaxValue)]
+		public int UserProfileId { get; set; }
+		[Required, NotNull]
+		[Range(0,int.MaxValue)]
+		public int OrderId { get; set; }
+		[Required, NotNull]
+		[Range(0, int.MaxValue)]
+		public int ItemId { get; set; }
+
+	}
 	//public int Id { get; set; }
 	//public string TrackName { get; set; }
 	//public int OwnerId { get; set; }

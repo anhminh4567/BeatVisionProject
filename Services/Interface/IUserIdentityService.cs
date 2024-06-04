@@ -41,5 +41,6 @@ namespace Services.Interface
 
 		Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId);
         Task<Result<IList<CustomIdentityUserDto>>> GetUsersPaging(int start, int amount);
+        Task<Result> IsUserIdentityLegit(CustomIdentityUser user);
 	}
 }

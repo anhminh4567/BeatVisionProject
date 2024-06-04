@@ -8,6 +8,7 @@ using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.Helper;
 using Shared.Models;
+using Shared.RequestDto;
 using Shared.ResponseDto;
 using System;
 using System.Collections.Generic;
@@ -53,7 +54,13 @@ namespace Services.Implementation
 			var getuserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
 			if(getuserProfile == null)
 			{
-				return Result<CreatePaymentResultDto>.Fail();
+				error.ErrorMessage = "canot found user profile";
+				return Result<CreatePaymentResultDto>.Fail(error);
+			}
+			var checkIfAccountLegit = await _userManager.IsUserLegit(getuserProfile);
+			if (checkIfAccountLegit.isSuccess is false) 
+			{
+				return Result<CreatePaymentResultDto>.Fail(checkIfAccountLegit.Error);
 			}
 			var placeOrderResult = await PlaceOrder(getuserProfile);
 			if(placeOrderResult.isSuccess is false)
@@ -85,6 +92,11 @@ namespace Services.Implementation
 			{
 				error.ErrorMessage = "nothing to buy in cart";
 				return Result<Order>.Fail(error);
+			}
+			var getUserIdentity = await _userIdentityService.UserManager.FindByIdAsync(userProfile.IdentityId.ToString()); // _unitOfWork.Repositories.customIdentityUser.GetById(userProfile.IdentityId);
+			if((await _userIdentityService.UserManager.IsEmailConfirmedAsync(getUserIdentity)) is false)// email not confirmed
+			{
+
 			}
 			try
 			{
@@ -228,16 +240,23 @@ namespace Services.Implementation
 			}
 			var trackIds = order.OrderItems.Select(ot => ot.TrackId).ToList();
 			var getTracks = new List<Track>();
-			foreach(var trackId in trackIds)
+			foreach (var trackId in trackIds)
 			{
 				var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
 				if (getTrack == null)
 					continue;
 				getTracks.Add(getTrack);
 			}
-			var sendResult = await _trackManager.SendMusicAttachmentToEmail(getUserProfile, getTracks);
-			if (sendResult.isSuccess is false)
-				return Result.Fail(sendResult.Error);
+			//var sendResult = await _trackManager.SendMusicAttachmentToEmail(getUserProfile, getTracks);
+			//if (sendResult.isSuccess is false)
+			//	return Result.Fail(sendResult.Error);
+			var messageDto = new CreateMessageDto
+			{
+				Content = $"your have just bought {getTracks.Count} track",
+				MessageName = "please get your track in the order section on our site",
+				Weight = NotificationWeight.MINOR,
+			};
+			var sendNotificatoinMail = await _notificationManager.ServerSendNotificationMail_ToUser(messageDto,getUserProfile.Id);
 			return Result.Success();
 		}
 		public async Task<Result<Order>> OnWebhookPaymentReturn(WebhookType webhookType) 
@@ -245,6 +264,11 @@ namespace Services.Implementation
 			var error = new Error();
 			var orderCode = webhookType.data.orderCode;
 			var getOrder = await GetOrderByOrderCode(orderCode);
+			if(getOrder.Status == OrderStatus.PAID) 
+			{
+				error.ErrorMessage = "ORDER IS PAID LONG AGO";
+				return Result<Order>.Fail();
+			}
 			var verifyDataResult = await  _payosService.VerifyPayment(webhookType);
 			if (verifyDataResult.isSuccess is false)
 			{
@@ -256,47 +280,67 @@ namespace Services.Implementation
 				error.ErrorMessage = "verify payment seems to fail, try contact manager to ask for refund";
 				return Result<Order>.Fail(error);
 			}
-			var getPaymentLinkInformatoin = await _payosService.GetPaymentLinkInformation(orderCode);
+			//var getPaymentLinkInformatoin = await _payosService.GetPaymentLinkInformation(orderCode);
 			getOrder.Status = OrderStatus.PAID;
 			getOrder.PricePaid = getOrder.Price;
 			getOrder.PriceRemain = 0;
 			getOrder.PaidDate = DateTime.Now;
 			await _unitOfWork.Repositories.orderRepository.Update(getOrder);
 			await _unitOfWork.SaveChangesAsync();
-			// PHAN NAY TRO DI LA DE UPDATE ORDERTRANSACTION
-			var getPaymentTransactions = getPaymentLinkInformatoin.Value.transactions;
-			IList<OrderTransaction> orderTransaction = new List<OrderTransaction>();
-			foreach(var transaction in getPaymentTransactions ) 
+			var transactionData = webhookType.data;
+			var newOrderTransaction = new OrderTransaction()
 			{
-				var newOrderTransaction = new OrderTransaction()
-				{
-					Reference = transaction.reference,
-					Amount = transaction.amount,
-					AccountNumber = transaction.accountNumber,
-					CounterAccountBankId = transaction.counterAccountBankId,
-					CounterAccountBankName = transaction.counterAccountBankName,
-					CounterAccountName = transaction.counterAccountName,
-					CounterAccountNumber = transaction.counterAccountNumber,
-					VirtualAccountName = transaction.virtualAccountName,
-					VirtualAccountNumber = transaction.virtualAccountNumber,
-					TransactionDateTime = transaction.transactionDateTime,
-					OrderId = getOrder.Id,
-				};
-				orderTransaction.Add(newOrderTransaction);
-			}
-			var getCurrentOrderTransaction = await _unitOfWork.Repositories.orderTransactionRepository.GetByCondition(ot => ot.OrderId == getOrder.Id);
-			if(getCurrentOrderTransaction != null && getCurrentOrderTransaction.Count() > 0) 
-			{
-				await _unitOfWork.Repositories.orderTransactionRepository.DeleteRange(getCurrentOrderTransaction);
-				await _unitOfWork.SaveChangesAsync();
-			}
-			var createResult = await _unitOfWork.Repositories.orderTransactionRepository.CreateRange(orderTransaction);
+				AccountNumber = transactionData.accountNumber,
+				Amount = transactionData.amount,
+				CounterAccountBankId = transactionData.counterAccountBankId,
+				CounterAccountBankName = transactionData.counterAccountBankName,
+				CounterAccountName = transactionData.counterAccountName,
+				CounterAccountNumber = transactionData.counterAccountNumber,
+				OrderId = getOrder.Id,
+				Reference = transactionData.reference,
+				VirtualAccountNumber = transactionData.virtualAccountNumber,
+				TransactionDateTime = transactionData.transactionDateTime,
+				VirtualAccountName = transactionData.virtualAccountName,
+			};
+			await _unitOfWork.Repositories.orderTransactionRepository.Create(newOrderTransaction);
 			await _unitOfWork.SaveChangesAsync();
-			var getNewOrderTransaction = await _unitOfWork.Repositories.orderTransactionRepository.GetByCondition(ot => ot.OrderId == getOrder.Id);
-
-			getOrder.OrderTransactions = getNewOrderTransaction.ToList();
+			getOrder.OrderTransactions.Add(newOrderTransaction);
 			await _unitOfWork.Repositories.orderRepository.Update(getOrder);
 			await _unitOfWork.SaveChangesAsync();
+			//// PHAN NAY TRO DI LA DE UPDATE ORDERTRANSACTION
+			//var getPaymentTransactions = getPaymentLinkInformatoin.Value.transactions;
+			//IList<OrderTransaction> orderTransaction = new List<OrderTransaction>();
+			//foreach(var transaction in getPaymentTransactions ) 
+			//{
+			//	var newOrderTransaction = new OrderTransaction()
+			//	{
+			//		Reference = transaction.reference,
+			//		Amount = transaction.amount,
+			//		AccountNumber = transaction.accountNumber,
+			//		CounterAccountBankId = transaction.counterAccountBankId,
+			//		CounterAccountBankName = transaction.counterAccountBankName,
+			//		CounterAccountName = transaction.counterAccountName,
+			//		CounterAccountNumber = transaction.counterAccountNumber,
+			//		VirtualAccountName = transaction.virtualAccountName,
+			//		VirtualAccountNumber = transaction.virtualAccountNumber,
+			//		TransactionDateTime = transaction.transactionDateTime,
+			//		OrderId = getOrder.Id,
+			//	};
+			//	orderTransaction.Add(newOrderTransaction);
+			//}
+			//var getCurrentOrderTransaction = await _unitOfWork.Repositories.orderTransactionRepository.GetByCondition(ot => ot.OrderId == getOrder.Id);
+			//if(getCurrentOrderTransaction != null && getCurrentOrderTransaction.Count() > 0) 
+			//{
+			//	await _unitOfWork.Repositories.orderTransactionRepository.DeleteRange(getCurrentOrderTransaction);
+			//	await _unitOfWork.SaveChangesAsync();
+			//}
+			//var createResult = await _unitOfWork.Repositories.orderTransactionRepository.CreateRange(orderTransaction);
+			//await _unitOfWork.SaveChangesAsync();
+			//var getNewOrderTransaction = await _unitOfWork.Repositories.orderTransactionRepository.GetByCondition(ot => ot.OrderId == getOrder.Id);
+
+			//getOrder.OrderTransactions = getNewOrderTransaction.ToList();
+			//await _unitOfWork.Repositories.orderRepository.Update(getOrder);
+			//await _unitOfWork.SaveChangesAsync();
 			return Result<Order>.Success(getOrder);
 		}
 		public async Task<Result> CheckPaymentSuccess(long orderCode)
@@ -392,6 +436,18 @@ namespace Services.Implementation
 {
 	public partial class OrderManager
 	{
+		public async Task<Order?> GetOrderDetail(int orderId)
+		{
+			return (await _unitOfWork.Repositories.orderRepository.GetByIdInclude(orderId, "OrderItems,OrderTransactions"));
+		}
+		public Result IsOrderLegitForDownload(Order order)
+		{
+			if(order.Status != OrderStatus.PAID)
+			{
+				return Result.Fail();
+			}
+			return Result.Success();
+		}
 		public async Task<IList<OrderDto>> GetOrdersRangeByUser(UserProfile userProfile, int start, int take)
 		{
 			if (start < 0 || take < 0)

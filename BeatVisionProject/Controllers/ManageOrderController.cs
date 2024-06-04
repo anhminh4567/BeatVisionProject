@@ -7,6 +7,7 @@ using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.RequestDto;
 using Shared.ResponseDto;
+using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
@@ -128,6 +129,5 @@ namespace BeatVisionProject.Controllers
 			var fullUrl = $"{scheme}://{host}/swagger/index.html";
 			return Redirect(fullUrl);
 		}
-
 	}
 }

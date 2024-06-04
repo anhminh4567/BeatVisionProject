@@ -493,6 +493,21 @@ namespace Services.Implementation
 			var mappedResult = _mapper.Map<IList<CustomIdentityUserDto>>(getUsers);
 			return Result<IList<CustomIdentityUserDto>>.Success(mappedResult);
 		}
+		public async Task<Result> IsUserIdentityLegit(CustomIdentityUser user)
+		{
+			var error = new Error();
+			if ( (await UserManager.IsEmailConfirmedAsync(user)) is false)
+			{
+				error.ErrorMessage = "email not confirmed";
+				return Result.Fail();
+			}
+			if( (await UserManager.IsLockedOutAsync(user)) is true)
+			{
+				error.ErrorMessage = "account is lock out";
+				return Result.Fail();
+			}
+			return Result.Success();
+		}
 	}
 
 }

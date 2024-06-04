@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet.Actions;
+using NAudio.Codecs;
 using Repository.Interface;
+using Services.Interface;
 using Shared;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
@@ -23,15 +25,39 @@ namespace Services.Implementation
 		private readonly ImageFileServices _imageFileServices;
 		private readonly CommentService _commentService;
 		private readonly AppsettingBinding _appsettings;
+		private readonly IUserIdentityService _userIdentityService;
 		private readonly IMapper _mapper;
 
-		public AppUserManager(IUnitOfWork unitOfWork, ImageFileServices imageFileServices, CommentService commentService, AppsettingBinding appsettings, IMapper mapper)
+		public AppUserManager(IUnitOfWork unitOfWork, ImageFileServices imageFileServices, CommentService commentService, AppsettingBinding appsettings, IMapper mapper, IUserIdentityService userIdentityService)
 		{
 			_unitOfWork = unitOfWork;
 			_imageFileServices = imageFileServices;
 			_commentService = commentService;
 			_appsettings = appsettings;
 			_mapper = mapper;
+			_userIdentityService = userIdentityService;
+		}
+		public async Task<Result> IsUserLegit(UserProfile userProfile)
+		{
+			var error = new Error();
+			if(userProfile.IdentityUser is null)
+			{
+				var getIdentity = await _userIdentityService.UserManager.FindByIdAsync(userProfile.IdentityId.ToString());
+				userProfile.IdentityUser = getIdentity;
+			}
+			var identityLegitResult = await _userIdentityService.IsUserIdentityLegit(userProfile.IdentityUser);
+			if (identityLegitResult.isSuccess is false)
+			{
+				return Result.Fail(identityLegitResult.Error);
+			}
+			if(userProfile.AccountStatus == AcccountStatus.BANNED 
+				|| userProfile.AccountStatus == AcccountStatus.SUSPENDED)
+			{
+				error.ErrorMessage = "account is banned or suspended";
+				return Result.Fail();
+			}
+			return Result.Success();
+				
 		}
 		public async Task<Result<IList<CartItemDto>>>GetAllUserCartItems(int userprofileid)
 		{

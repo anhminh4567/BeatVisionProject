@@ -412,7 +412,7 @@ namespace Repository.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CreatorId")
+                    b.Property<int?>("CreatorId")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsServerNotification")
@@ -924,9 +924,7 @@ namespace Repository.Migrations
                 {
                     b.HasOne("Shared.Models.UserProfile", "Creator")
                         .WithMany("CreatedMessage")
-                        .HasForeignKey("CreatorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CreatorId");
 
                     b.Navigation("Creator");
                 });

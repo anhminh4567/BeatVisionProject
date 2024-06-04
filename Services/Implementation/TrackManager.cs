@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using Azure;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -21,6 +23,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Reflection;
@@ -298,7 +301,7 @@ namespace Services.Implementation
 					track.IsPublished = true;
 					await _unitOfWork.Repositories.trackRepository.Update(track);
 					await _unitOfWork.SaveChangesAsync();
-					 _notificationManager.ServerSendNotificationMail(new CreateNotificationForNewTracks()
+					_notificationManager.ServerSendNotificationMail(new CreateNotificationForNewTracks()
 					{
 						Content = "new track publish : " + track.TrackName,
 						MessageName = "New Track Publish !",
@@ -308,7 +311,7 @@ namespace Services.Implementation
 				}
 			}
 			await _unitOfWork.SaveChangesAsync();
-			
+
 		}
 		// remove the file from public for access
 		public async Task<Result> PulldownTrack(int trackId)
@@ -478,10 +481,12 @@ namespace Services.Implementation
 			}
 			return mappedList;
 		}
-		public async Task<IList<TrackResponseDto>> GetTrackRange_Status(int start, int amount, string STATUS)
+		public async Task<IList<TrackResponseDto>> GetTrackRange_Status(int start, int amount, TrackStatus STATUS)
 		{
+			//var tracks = await _unitOfWork.Repositories.trackRepository
+			//	.GetByCondition(t => t.Status.ToString() == STATUS, null, includeProperties: "Tags", skip: start, take: amount);
 			var tracks = await _unitOfWork.Repositories.trackRepository
-				.GetByCondition(t => t.Status.ToString() == STATUS, null, includeProperties: "Tags", skip: start, take: amount);
+				.GetByCondition(t => t.Status.Equals(STATUS), null, includeProperties: "Tags", skip: start, take: amount);
 			var mappedList = _mapper.Map<IList<TrackResponseDto>>(tracks);
 			foreach (var track in mappedList)
 			{
@@ -542,10 +547,10 @@ namespace Services.Implementation
 				getTrack.Licenses.Clear();
 				await _unitOfWork.Repositories.trackRepository.Update(getTrack);
 				await _unitOfWork.SaveChangesAsync();
-				
+
 				getTrack.Tags = getTags.ToList();
 				getTrack.Licenses = getLicenses.ToList();
-				
+
 				getTrack.TrackName = updateTrackDto.TrackName;
 				if (updateTrackDto.bannderFile is not null)
 				{
@@ -574,7 +579,7 @@ namespace Services.Implementation
 				error.ErrorMessage = ex.Message;
 				return Result.Fail(error);
 			}
-			
+
 		}
 		public async Task<Result> DeleteTrack(int trackId)
 		{
@@ -723,6 +728,127 @@ namespace Services.Implementation
 			}
 			await _unitOfWork.SaveChangesAsync();
 			return Result.Success();
+		}
+		public async Task<Result<BlobFileResponseDto>> DownloadTrackItems(int trackId)
+		{
+			var error = new Error();
+			var getTrackDetails = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "Licenses");
+			if (getTrackDetails is null)
+			{
+				error.ErrorMessage = "fail to get track detail";
+				return Result<BlobFileResponseDto>.Fail(error);
+			}
+			if (ValidateIfTrackIsForDownload(getTrackDetails) is false)
+			{
+				error.ErrorMessage = "track is not valid";
+				return Result<BlobFileResponseDto>.Fail(error);
+			}
+			var getTrackLicenses = getTrackDetails.Licenses;
+			var trackBlobFile = await _unitOfWork.Repositories.blobFileDataRepository.GetById(getTrackDetails.AudioBlobId);
+			var getAudioGeneratedName = trackBlobFile.GeneratedName;
+			var getAllAudioFile = (await _unitOfWork.Repositories.blobFileDataRepository
+				.GetByCondition(file => file.GeneratedName == getAudioGeneratedName && file.IsPublicAccess == false)).ToList();
+			var memoryStream = new MemoryStream();
+			//using var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true) ;
+			try
+			{
+				using (var zipArchive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+				{
+
+					foreach (var audioFile in getAllAudioFile)
+					{
+						var fileName = $"{getTrackDetails.TrackName}.{audioFile.FileExtension}";
+						if (audioFile.ContentType.Equals(ApplicationStaticValue.ContentTypeMp3))
+						{
+							var downloadResult = await _audioFileService.DownloadPrivateMp3Audio(getTrackDetails.Id);
+							if (downloadResult.isSuccess is false)
+								throw new Exception();
+							var blobResult = downloadResult.Value;
+							var entry = zipArchive.CreateEntry(fileName, CompressionLevel.Fastest);
+							using (var entryStream = entry.Open())
+							{
+								if (blobResult.Stream.CanSeek)
+								{
+									blobResult.Stream.Seek(0, SeekOrigin.Begin);
+								}
+								//blobResult.Stream.Position = 0;
+								await blobResult.Stream.CopyToAsync(entryStream);
+							}
+							blobResult.Stream.Dispose();
+						}
+						else if (audioFile.ContentType.Equals(ApplicationStaticValue.ContentTypeWav))
+						{
+							var downloadResult = await _audioFileService.DownloadPrivateWavAudio(getTrackDetails.Id);
+							if (downloadResult.isSuccess is false)
+								throw new Exception();
+							var blobResult = downloadResult.Value;
+							var entry = zipArchive.CreateEntry(fileName, CompressionLevel.Fastest);
+							using (var entryStream = entry.Open())
+							{
+								if (blobResult.Stream.CanSeek)
+								{
+									blobResult.Stream.Seek(0, SeekOrigin.Begin);
+								}
+								//blobResult.Stream.Position = 0;
+								await blobResult.Stream.CopyToAsync(entryStream);
+							}
+							blobResult.Stream.Dispose();
+						}
+						else
+						{
+							continue;
+						}
+					}
+					foreach (var license in getTrackLicenses)
+					{
+						var fileName = $"{license.LicenceName}.pdf";
+						var downloadLicenseResult = await _licenseFileService.DownloadLicensePdf(license);
+						if (downloadLicenseResult.isSuccess is false)
+							throw new Exception("license error");
+						var licenseResult = downloadLicenseResult.Value;
+						var entry = zipArchive.CreateEntry(fileName, CompressionLevel.Fastest);
+						using (var entryStream = entry.Open())
+						{
+							if (licenseResult.Stream.CanSeek)
+							{
+								licenseResult.Stream.Seek(0, SeekOrigin.Begin);
+							}
+							//licenseResult.Stream.Position = 0;
+							await licenseResult.Stream.CopyToAsync(entryStream);
+						}
+						licenseResult.Stream.Dispose();
+					}
+				};
+				//memoryStream.Position = 0;
+				memoryStream.Seek(0, SeekOrigin.Begin);
+				using (var fileStream = new FileStream("D:\\Course_8_project_file\\EXE201\\BeatVisionProject\\BeatVisionProject\\wwwroot\\output.zip", FileMode.Create, FileAccess.Write))
+				{
+					memoryStream.WriteTo(fileStream);
+				}
+				memoryStream.Seek(0, SeekOrigin.Begin);
+				var newResponseDto = new BlobFileResponseDto
+				{
+					Stream = memoryStream,
+					ContentType = ApplicationStaticValue.ContentTypeZip,
+				};
+				return Result<BlobFileResponseDto>.Success(newResponseDto);
+			}
+			catch (Exception ex)
+			{
+				memoryStream.Dispose();
+				error.isException = true;
+				error.ErrorMessage = ex.Message;
+				error.StatusCode = StatusCodes.Status500InternalServerError;
+				return Result<BlobFileResponseDto>.Fail();
+			}
+		}
+		private bool ValidateIfTrackIsForDownload(Track track)
+		{
+			if (track.PublishDateTime.HasValue is false)
+			{
+				return false;
+			}
+			return true;
 		}
 		private void MapCorrectImageUrl(TrackResponseDto track)
 		{

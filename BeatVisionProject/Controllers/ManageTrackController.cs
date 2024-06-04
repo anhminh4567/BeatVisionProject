@@ -6,6 +6,7 @@ using Services.Implementation;
 using Services.Interface;
 using Shared;
 using Shared.ConfigurationBinding;
+using Shared.Enums;
 using Shared.RequestDto;
 using Shared.ResponseDto;
 using StackExchange.Redis;
@@ -22,9 +23,10 @@ namespace BeatVisionProject.Controllers
 		private readonly AppUserManager _appUserManager;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly CommentService _commentService;
+		private readonly OrderManager _orderManager;
 		private readonly int AmountPerPage = 10;
 
-		public ManageTrackController(TrackManager trackManager, AppsettingBinding appsetting, IUserIdentityService userIdentityService, AppUserManager appUserManager, IUnitOfWork unitOfWork, CommentService commentService)
+		public ManageTrackController(TrackManager trackManager, AppsettingBinding appsetting, IUserIdentityService userIdentityService, AppUserManager appUserManager, IUnitOfWork unitOfWork, CommentService commentService, OrderManager orderManager)
 		{
 			_trackManager = trackManager;
 			_appsetting = appsetting;
@@ -32,6 +34,7 @@ namespace BeatVisionProject.Controllers
 			_appUserManager = appUserManager;
 			_unitOfWork = unitOfWork;
 			_commentService = commentService;
+			_orderManager = orderManager;
 		}
 
 		[HttpGet("get-public-trackfile")]
@@ -56,7 +59,7 @@ namespace BeatVisionProject.Controllers
 			return Ok( response);
 		}
 		[HttpGet("get-range-status")]
-		public async Task<ActionResult<IList<PagingResponseDto<IList<TrackResponseDto>>>>> GetTrackRange([FromQuery] string TRACK_STATUS, [FromQuery] int currentPage, [FromQuery] int amount = 10)
+		public async Task<ActionResult<IList<PagingResponseDto<IList<TrackResponseDto>>>>> GetTrackRange([FromQuery] TrackStatus TRACK_STATUS, [FromQuery] int currentPage, [FromQuery] int amount = 10)
 		{
 			var trueStartPosition = currentPage * amount;
 			var amountToTake = amount;
@@ -227,6 +230,23 @@ namespace BeatVisionProject.Controllers
 			if(updateResult.isSuccess is false)
 				return StatusCode(updateResult.Error.StatusCode,updateResult.Error);
 			return Ok();
+		}
+		[HttpPost("download-bought-content")]
+		public async Task<ActionResult> DownloadTrackOrderItem(RequestDownloadBoughtContentDto requestDownloadBoughtContentDto) 
+		{
+			var getOrder =await _orderManager.GetOrderDetail(requestDownloadBoughtContentDto.OrderId);	
+			if(getOrder is null)
+				return BadRequest();
+			if (_orderManager.IsOrderLegitForDownload(getOrder).isSuccess is false)
+				return BadRequest("order is not valid");
+			var getOrderItem = getOrder.OrderItems.FirstOrDefault(i => i.Id == requestDownloadBoughtContentDto.ItemId);
+			if (getOrderItem is null)
+				return BadRequest();
+			var downloadResult = await _trackManager.DownloadTrackItems(getOrderItem.TrackId);
+			if (downloadResult.isSuccess is false)
+				return StatusCode(downloadResult.Error.StatusCode,downloadResult.Error);
+			downloadResult.Value.Stream.Position = 0;
+			return File(downloadResult.Value.Stream,downloadResult.Value.ContentType,$"itemid{getOrderItem.Id}orderid{getOrder.Id}.zip",true );
 		}
 	}
 }

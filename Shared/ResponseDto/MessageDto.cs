@@ -13,7 +13,7 @@ namespace Shared.ResponseDto
 		public DateTime CreatedDate { get; set; }
 		public NotificationType Type { get; set; }
 		public NotificationWeight Weight { get; set; }
-		public int CreatorId { get; set; }
+		public int? CreatorId { get; set; }
 		public bool IsServerNotification { get; set; }
 	}
 }

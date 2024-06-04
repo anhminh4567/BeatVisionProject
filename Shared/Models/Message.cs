@@ -16,10 +16,10 @@ namespace Shared.Models
 		public NotificationType Type { get; set; }
 		[Column(TypeName = "nvarchar(30)")]
 		public NotificationWeight Weight { get; set; }
-		public int CreatorId { get; set; } = -1;// -1 means server generated
-		public UserProfile Creator { get; set; }
+		public int? CreatorId { get; set; } = null;// 0 means server generated
+		public UserProfile? Creator { get; set; }
 		public bool IsServerNotification { get; set; } = true;
-		public IList<Notification> Notifications { get; set; }
+		public IList<Notification>? Notifications { get; set; } = new List<Notification>();
 		//public IList<UserProfile> Receivers { get; set; }
 	}
 }
