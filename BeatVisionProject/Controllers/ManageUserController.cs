@@ -48,7 +48,7 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpPut("profile-image/{id}")]
-		public async Task<ActionResult> UpdateProfileImage([FromRoute] int id,UpdateProfileImageDto updateProfileImageDto)
+		public async Task<ActionResult> UpdateProfileImage([FromRoute] int id,[FromForm]UpdateProfileImageDto updateProfileImageDto)
 		{
 			var getFile = updateProfileImageDto.imageFile;
 			//var getProfile = await _appUserManager.GetUserProfile(id);

@@ -73,7 +73,7 @@ namespace BeatVisionProject.Controllers
 		[HttpGet("get-user-cart-items")]
 		public async Task<ActionResult> GetUserCartItems([FromQuery] int userId)
 		{
-			if (userId <= 0)
+			 if (userId <= 0)
 				return BadRequest();
 			var getResult = await _userManager.GetAllUserCartItems(userId);
 			if (getResult.isSuccess is false)
