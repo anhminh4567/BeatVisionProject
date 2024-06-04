@@ -1,0 +1,186 @@
+﻿@using System.Text;
+@using System;
+@model Shared.Poco.BillingEmailModel;
+@{
+	var userProfileData = Model.UserToSend;
+	var username = userProfileData.Fullname;
+	var orderItems = Model.OrderItems;
+	var order = Model.Order;
+	var mainPageUrl = Model.ToMainPage is null ? "#" : Model.ToMainPage;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Email Template</title>
+	<style>
+		body {
+			font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+			box-sizing: border-box;
+			font-size: 14px;
+			width: 100%;
+			background-color: transparent;
+			margin: 0;
+		}
+
+		.body-wrap {
+			width: 100%;
+			background-color: transparent;
+			margin: 0;
+		}
+
+		.container {
+			display: block !important;
+			max-width: 600px !important;
+			clear: both;
+			margin: 0 auto;
+		}
+
+		.content {
+			padding: 20px;
+		}
+
+		.main {
+			border: 1px dashed #4d79f6;
+			width: 100%;
+		}
+
+		.content-wrap {
+			padding: 20px;
+			background-color: transparent;
+		}
+
+		.content-block {
+			padding: 0 0 5px;
+		}
+
+		.invoice {
+			width: 80%;
+			margin: auto
+		}
+
+		.invoice-items {
+			width: 100%;
+		}
+
+		.aligncenter {
+			text-align: center;
+		}
+
+		.alignright {
+			text-align: right;
+		}
+
+		.btn-primary {
+			font-size: 14px;
+			text-decoration: underline;
+			line-height: 2em;
+			font-weight: bold;
+			text-align: center;
+			cursor: pointer;
+			display: block;
+			border-radius: 5px;
+			text-transform: capitalize;
+			border: none;
+			padding: 10px 20px;
+			color: #4d79f6;
+			background-color: transparent;
+		}
+	</style>
+</head>
+<body>
+	<table class="body-wrap" bgcolor="transparent">
+		<tbody>
+			<tr>
+				<td valign="top"></td>
+				<td class="container" width="600" valign="top">
+					<div class="content">
+						<table class="main" width="100%" cellpadding="0" cellspacing="0">
+							<tbody>
+								<tr>
+									<td class="content-wrap aligncenter" align="center" valign="top">
+										<table width="100%" cellpadding="0" cellspacing="0">
+											<tbody>
+												<tr>
+													<td>
+														<a href="#">
+															<img src="cid:logo" style="height: 100px; margin-left: auto; margin-right: auto; display: block;" />
+														</a>
+													</td>
+												</tr>
+												<tr>
+													<td class="content-block" valign="top">
+														<h2 class="aligncenter" style="font-family: 'Helvetica Neue', Helvetica, Arial, 'Lucida Grande', sans-serif; font-size: 24px; color: #50649c; line-height: 1.2em; font-weight: 600; text-align: center;">
+															Thanks for Buying Our Track
+															<p style="color: #4d79f6; font-weight: 700; margin: 0px">BeatVision</p>.
+														</h2>
+													</td>
+												</tr>
+												<tr>
+													<td class="content-block aligncenter" align="center" valign="top">
+														<table class="invoice">
+															<tbody>
+																<tr>
+																	<td valign="top" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; padding: 5px 0">
+																		<div class="" style="align-content:start">
+																			<p style="margin: 0px; text-align:start ">@username</p>
+																			<p style="margin: 0px; text-align:start ">Order ID: @order.Id</p>
+																			<p style="margin: 0px; text-align:start ">Paid Date: @order.CreateDate</p>
+
+																		</div>
+
+																	</td>
+																</tr>
+																<tr>
+																	<td valign="top" style="padding: 5px 0;">
+																		<table class="invoice-items" cellpadding="0" cellspacing="0">
+																			<tbody>
+																				@foreach (var item in orderItems)
+																				{
+																					<tr>
+																						<td valign="top" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: top; border-top: 1px solid #eee; padding: 10px 0;">
+																							<p class="" style="margin: 0px; text-align:start">@item.TrackName</p>
+																						</td>
+																						<td class="alignright" align="right" valign="top" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: top; border-top: 1px solid #eee; padding: 10px 0;">
+																							<p class="" style="margin: 0px; text-align:end">
+																								@Convert.ToInt32(item.CurrentPrice) .Vnd
+																							</p>
+																						</td>
+																					</tr>
+																				}
+																			<td class="alignright" width="80%" align="right" valign="top" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: top; border-top: 2px solid #50649c; border-bottom: 2px solid #50649c; font-weight: 700; padding: 10px 0;">Total</td>
+																			<td class="alignright" align="right" valign="top" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 14px; vertical-align: top; border-top: 2px solid #50649c; border-bottom: 2px solid #50649c; font-weight: 700; padding: 10px 0;">@Convert.ToInt32(order.Price) .Vnd</td>
+																</tr>
+															</tbody>
+														</table>
+													</td>
+												</tr>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+								<tr>
+									<td class="content-block aligncenter" align="center" valign="top">
+										<a href="@mainPageUrl" class="btn-primary" style="text-decoration:none">View in browser</a>
+									</td>
+								</tr>
+								<tr>
+									<td class="content-block aligncenter" align="center" valign="top">
+										— <b>Beatvision</b> —
+									</td>
+								</tr>
+							</tbody>
+						</table>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	</div>
+	</td>
+	<td valign="top"></td>
+	</tr>
+	</tbody>
+	</table>
+</body>
+</html>

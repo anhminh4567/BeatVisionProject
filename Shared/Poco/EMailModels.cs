@@ -45,4 +45,12 @@ namespace Shared.Poco
         public TrackResponseDto? TrackToPublish { get; set; }
         public UserProfileDto? UserToSend { get; set; }
     }
+
+    public class BillingEmailModel
+    {
+        public UserProfileDto UserToSend { get; set; }
+        public OrderDto Order { get; set; }
+        public IList<OrderItemDto> OrderItems { get; set; }
+        public string? ToMainPage {  get; set; }
+    }
 }

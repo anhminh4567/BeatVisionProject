@@ -820,11 +820,11 @@ namespace Services.Implementation
 					}
 				};
 				//memoryStream.Position = 0;
-				memoryStream.Seek(0, SeekOrigin.Begin);
-				using (var fileStream = new FileStream("D:\\Course_8_project_file\\EXE201\\BeatVisionProject\\BeatVisionProject\\wwwroot\\output.zip", FileMode.Create, FileAccess.Write))
-				{
-					memoryStream.WriteTo(fileStream);
-				}
+				//memoryStream.Seek(0, SeekOrigin.Begin);
+				//using (var fileStream = new FileStream("D:\\Course_8_project_file\\EXE201\\BeatVisionProject\\BeatVisionProject\\wwwroot\\output.zip", FileMode.Create, FileAccess.Write))
+				//{
+				//	memoryStream.WriteTo(fileStream);
+				//}
 				memoryStream.Seek(0, SeekOrigin.Begin);
 				var newResponseDto = new BlobFileResponseDto
 				{

@@ -100,19 +100,11 @@ internal class Program
 		app.UseCors();
 		//app.UseHttpsRedirection();
 		app.UseStaticFiles();
-		app.UseAuthentication();
-		app.UseAuthorization();
+		
 		app.UseRouting();
-		app.UseEndpoints((endpoints) =>
-		{
-			endpoints.MapControllers();
-			endpoints.MapGet("/confirm-webhook", async (context) =>
-			{
-				var httpContext = context;
-				Console.WriteLine("confirm webhook");
-			});
-		});
-		//app.MapControllers();
+        app.UseAuthentication();
+        app.UseAuthorization();
+        app.MapControllers();
 
 		app.Run();
 	}

@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Identity.Client;
 using Net.payOS.Types;
 using Repository.Interface;
+using Services.Interface;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.Helper;
 using Shared.Models;
+using Shared.Poco;
 using Shared.RequestDto;
 using Shared.ResponseDto;
 using System;
@@ -28,6 +30,7 @@ namespace Services.Implementation
 		//	OnCancel  --> OnCancelUrl
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
+		private readonly IMyEmailService _emailService;
 		private readonly AppUserManager _userManager;
 		private readonly PayosService _payosService;
 		private readonly TrackManager _trackManager;
@@ -36,7 +39,7 @@ namespace Services.Implementation
 		private readonly UserIdentityServices _userIdentityService;
 		private readonly AppsettingBinding _appsettingBinding;
 
-		public OrderManager(IUnitOfWork unitOfWork, IMapper mappter, AppUserManager userManager, PayosService payosService, TrackManager trackManager, UserIdentityServices userIdentityServices, NotificationManager notificationManager, UserIdentityServices userIdentityService, AppsettingBinding appsettingBinding)
+		public OrderManager(IUnitOfWork unitOfWork, IMapper mappter, AppUserManager userManager, PayosService payosService, TrackManager trackManager, UserIdentityServices userIdentityServices, NotificationManager notificationManager, UserIdentityServices userIdentityService, AppsettingBinding appsettingBinding, IMyEmailService emailService)
 		{
 			_unitOfWork = unitOfWork;
 			_mapper = mappter;
@@ -47,6 +50,7 @@ namespace Services.Implementation
 			_notificationManager = notificationManager;
 			_userIdentityService = userIdentityService;
 			_appsettingBinding = appsettingBinding;
+			_emailService = emailService;
 		}
 		public async Task<Result<CreatePaymentResultDto>> Checkout(int userProfileId) 
 		{
@@ -341,6 +345,7 @@ namespace Services.Implementation
 			//getOrder.OrderTransactions = getNewOrderTransaction.ToList();
 			//await _unitOfWork.Repositories.orderRepository.Update(getOrder);
 			//await _unitOfWork.SaveChangesAsync();
+			SendBillingEmail(getOrder.Id,getOrder.UserId);
 			return Result<Order>.Success(getOrder);
 		}
 		public async Task<Result> CheckPaymentSuccess(long orderCode)
@@ -411,7 +416,34 @@ namespace Services.Implementation
 			var result = await _unitOfWork.Repositories.orderRepository.GetByCondition(order => order.OrderCode == orderCode, null, "OrderTransactions,OrderItems");
 			return result.FirstOrDefault();
 		}
-
+		public async Task<Result> SendBillingEmail(int orderId, int userProfileId)
+		{
+			var getOrderFull = await GetOrderDetail(orderId);
+			if(getOrderFull == null) 
+			{
+				return Result.Fail();
+			}
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetByIdInclude(userProfileId, "IdentityUser");
+			if(getUserProfile is null)
+				return Result.Fail();
+			var getBillingEmailTemplatePath = _appsettingBinding.MailTemplateAbsolutePath.FirstOrDefault(t => t.TemplateName == "BillingEmail")?.TemplateAbsolutePath;
+			if (string.IsNullOrEmpty(getBillingEmailTemplatePath))
+				return Result.Fail();
+			var mailMetadata = new EmailMetaData()
+			{
+				ToEmail = getUserProfile.IdentityUser.Email,
+				Subject = "Billing for your order",
+			};
+			var mappedOrderDto = _mapper.Map<OrderDto>(getOrderFull);
+			var billingModel = new BillingEmailModel()
+			{
+				Order = mappedOrderDto,
+				OrderItems = mappedOrderDto.OrderItems,
+				ToMainPage = null,
+				UserToSend = _mapper.Map<UserProfileDto>(getUserProfile),
+			};
+			return await _emailService.SendEmailWithTemplate<BillingEmailModel>(mailMetadata,getBillingEmailTemplatePath, billingModel) ;	
+		}
 
 		private async Task<IList<Track>> GetTrackItems(IList<CartItem> cartItems)
 		{

@@ -9,6 +9,7 @@ using Shared.RequestDto;
 using Shared.ResponseDto;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace BeatVisionProject.Controllers
@@ -95,7 +96,7 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpPost("receive-webhook")]
-		public async Task<ActionResult> ReceiveWebhook([FromBody]  WebhookType webhookType)
+		public async Task<ActionResult> ReceiveWebhook([FromBody] WebhookType webhookType)
 		{
 			//var result = await _payOsService.AddWebhookUrl();
 			var httpContext = HttpContext;
@@ -103,7 +104,7 @@ namespace BeatVisionProject.Controllers
 			if (result.isSuccess is false)
 				return StatusCode(result.Error.StatusCode, result.Error);
 			var sendMailResult = await _orderManager.OnFinishOrder(result.Value);
-			if(sendMailResult.isSuccess is false)
+			if (sendMailResult.isSuccess is false)
 				return StatusCode(sendMailResult.Error.StatusCode, sendMailResult.Error);
 			return NoContent();
 		}
@@ -128,6 +129,14 @@ namespace BeatVisionProject.Controllers
 			var host = HttpContext.Request.Host;
 			var fullUrl = $"{scheme}://{host}/swagger/index.html";
 			return Redirect(fullUrl);
+		}
+		[HttpGet("send-billing-test")]
+		public async Task<ActionResult> SuccessOrder([FromQuery] int orderId, [FromQuery] int userProfileId)
+		{
+			var sendResult = await _orderManager.SendBillingEmail(orderId,userProfileId);
+			if (sendResult.isSuccess is false)
+				return StatusCode(sendResult.Error.StatusCode, sendResult.Error);
+			return Ok();
 		}
 	}
 }
