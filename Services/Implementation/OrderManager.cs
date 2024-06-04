@@ -58,17 +58,19 @@ namespace Services.Implementation
 			var getuserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
 			if(getuserProfile == null)
 			{
-				error.ErrorMessage = "canot found user profile";
+				//error.ErrorMessage = "canot found user profile";
 				return Result<CreatePaymentResultDto>.Fail(error);
 			}
 			var checkIfAccountLegit = await _userManager.IsUserLegit(getuserProfile);
 			if (checkIfAccountLegit.isSuccess is false) 
 			{
+				//error.ErrorMessage = "user is not confirmed email or account is banned";
 				return Result<CreatePaymentResultDto>.Fail(checkIfAccountLegit.Error);
 			}
 			var placeOrderResult = await PlaceOrder(getuserProfile);
 			if(placeOrderResult.isSuccess is false)
 			{
+				//error.ErrorMessage = "fail to place an order, error in creating it";
 				return Result<CreatePaymentResultDto>.Fail(placeOrderResult.Error);
 			}
 			var newOrder = placeOrderResult.Value;
@@ -210,13 +212,13 @@ namespace Services.Implementation
 			if (getOrderCode == null || getPaymentLinkId == null)
 			{
 				error.ErrorMessage = "no ordercode or link id is found, which means something wrong with this order";
-				return Result.Fail();
+				return Result.Fail(error);
 			}
 			var cancelPaymentLinkResult = await _payosService.CancelPaymentUrl(getOrderCode.Value, "none");
 			if (cancelPaymentLinkResult.isSuccess is false)
 			{
 				error.ErrorMessage = "fail to cancel link payment, might be that the orderCode did not exists at all";
-				return Result.Fail();
+				return Result.Fail(error);
 			}
 			var returnedPaymentResult = cancelPaymentLinkResult.Value;
 			order.CancelAt = returnedPaymentResult.canceledAt is null ? DateTime.Now : DateTimeHelper.UtcTimeToLocalTime(returnedPaymentResult.canceledAt);
@@ -237,9 +239,11 @@ namespace Services.Implementation
 		}
 		public async Task<Result> OnFinishOrder(Order order)
 		{
+			var error = new Error();
 			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(order.UserId);
 			if(getUserProfile == null)
 			{
+				error.ErrorMessage = "cannot found user profile";
 				return Result.Fail();
 			}
 			var trackIds = order.OrderItems.Select(ot => ot.TrackId).ToList();
@@ -474,8 +478,10 @@ namespace Services.Implementation
 		}
 		public Result IsOrderLegitForDownload(Order order)
 		{
+			var error = new Error();
 			if(order.Status != OrderStatus.PAID)
 			{
+				error.ErrorMessage = "order is not paid yet";
 				return Result.Fail();
 			}
 			return Result.Success();

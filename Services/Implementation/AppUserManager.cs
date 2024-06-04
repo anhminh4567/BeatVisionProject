@@ -79,18 +79,21 @@ namespace Services.Implementation
 				{
 					var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile,Tags,Licenses");
 					if(getTrack is not null)
+					{
 						cartItem.Track = _mapper.Map<TrackResponseDto>(getTrack);
+						MapCorrectTrackBannderUrl(cartItem.Track);
+					}
 				}
 			}
 			return mappedResult;
 		}
-		public async Task<CartItemDto?> GetUserCartItem(UserProfile userProfile, int itemId)
-		{
-			var getResult = (await _unitOfWork.Repositories.cartItemRepository
-				.GetByCondition(item => item.UserId == userProfile.Id && item.Id == itemId)).FirstOrDefault();
-			var mappedResult = _mapper.Map<CartItemDto>(getResult);
-			return mappedResult;
-		}
+		//public async Task<CartItemDto?> GetUserCartItem(UserProfile userProfile, int itemId)
+		//{
+		//	var getResult = (await _unitOfWork.Repositories.cartItemRepository
+		//		.GetByCondition(item => item.UserId == userProfile.Id && item.Id == itemId)).FirstOrDefault();
+		//	var mappedResult = _mapper.Map<CartItemDto>(getResult);
+		//	return mappedResult;
+		//}
 		public async Task<Result> RemoveUserCartItem(int userProfileId, int itemId)
 		{
 			var error = new Error();
@@ -282,6 +285,12 @@ namespace Services.Implementation
 			userProfileDto.ProfileBlobUrl =  string.IsNullOrEmpty(userProfileDto.ProfileBlobUrl) 
 				? userProfileDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/"+ ApplicationStaticValue.DefaultProfileImageName
 				: userProfileDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + userProfileDto.ProfileBlobUrl;
+		}
+		private void MapCorrectTrackBannderUrl(TrackResponseDto trackResponseDto) 
+		{
+			trackResponseDto.ProfileBlobUrl = string.IsNullOrEmpty(trackResponseDto.ProfileBlobUrl) 
+				? trackResponseDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + ApplicationStaticValue.DefaultTrackImageName
+				: trackResponseDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + trackResponseDto.ProfileBlobUrl;
 		}
 	}
 }
