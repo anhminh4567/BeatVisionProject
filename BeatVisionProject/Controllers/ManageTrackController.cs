@@ -25,7 +25,7 @@ namespace BeatVisionProject.Controllers
 		private readonly CommentService _commentService;
 		private readonly OrderManager _orderManager;
 		private readonly int AmountPerPage = 10;
-
+		private readonly int PAGING_TAKE_LIMIT;
 		public ManageTrackController(TrackManager trackManager, AppsettingBinding appsetting, IUserIdentityService userIdentityService, AppUserManager appUserManager, IUnitOfWork unitOfWork, CommentService commentService, OrderManager orderManager)
 		{
 			_trackManager = trackManager;
@@ -35,6 +35,7 @@ namespace BeatVisionProject.Controllers
 			_unitOfWork = unitOfWork;
 			_commentService = commentService;
 			_orderManager = orderManager;
+			PAGING_TAKE_LIMIT = _appsetting.AppConstraints.PagingTakeLimit;
 		}
 
 		[HttpGet("get-public-trackfile")]
@@ -50,6 +51,10 @@ namespace BeatVisionProject.Controllers
 		[HttpGet("get-range")]
 		public async Task<ActionResult<IList<PagingResponseDto<IList<TrackResponseDto>>>>> GetTrackRange([FromQuery] int currentPage, [FromQuery] int amount = 10)
 		{
+			if(currentPage < 0 || amount < 0 || amount > PAGING_TAKE_LIMIT)
+			{
+				return BadRequest();
+			}
 			var trueStartPosition = currentPage * amount;
 			var amountToTake = amount;
 			var totalTrackCount = _trackManager.GetTotalTrackCount();
@@ -61,6 +66,10 @@ namespace BeatVisionProject.Controllers
 		[HttpGet("get-range-status")]
 		public async Task<ActionResult<IList<PagingResponseDto<IList<TrackResponseDto>>>>> GetTrackRange([FromQuery] TrackStatus TRACK_STATUS, [FromQuery] int currentPage, [FromQuery] int amount = 10)
 		{
+			if (currentPage < 0 || amount < 0 || amount > PAGING_TAKE_LIMIT)
+			{
+				return BadRequest();
+			}
 			var trueStartPosition = currentPage * amount;
 			var amountToTake = amount;
 			var totalTrackCount = _trackManager.GetTotalTrackCount();

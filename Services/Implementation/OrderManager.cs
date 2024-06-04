@@ -67,6 +67,16 @@ namespace Services.Implementation
 				//error.ErrorMessage = "user is not confirmed email or account is banned";
 				return Result<CreatePaymentResultDto>.Fail(checkIfAccountLegit.Error);
 			}
+			//var getUserOldOrders_include_orderItems = await _unitOfWork.Repositories.orderRepository
+			//	.GetByCondition(order => order.UserId == getuserProfile.Id, null, "OrderItems");
+			//var getUserCartItem = await _unitOfWork.Repositories.cartItemRepository
+			//	.GetByCondition(item => item.UserId == getuserProfile.Id);
+			//var checkIfCartItemLegit = IsUserCartItemLegit(getUserCartItem.ToList(), getUserOldOrders_include_orderItems.ToList());
+			//if(checkIfCartItemLegit is false)
+			//{
+			//	error.ErrorMessage = "cart item contain item that have been bought before";
+			//	return Result<CreatePaymentResultDto>.Fail();
+			//}	
 			var placeOrderResult = await PlaceOrder(getuserProfile);
 			if(placeOrderResult.isSuccess is false)
 			{
@@ -464,7 +474,27 @@ namespace Services.Implementation
 				totalPrice += parsedInt;
 			}
 			return totalPrice;
-
+		}
+		// oldOrder phai include het item, de tranh viec db bi goi qua nhieu lan
+		private bool IsUserCartItemLegit(IList<CartItem> cartItems, IList<Order> oldOrders) 
+		{
+			var cartTrackIds = cartItems.Where(item => item.ItemType == CartItemType.TRACK).Select(item => item.ItemId);
+			IList<int> oldItem_track_id = new List<int>();
+			foreach(var order in oldOrders)
+			{
+				if(order.OrderItems is null || order.OrderItems.Any() is false) 
+					return false;
+				foreach(var item in order.OrderItems)
+				{
+					oldItem_track_id.Add(item.TrackId);
+				}
+			}
+			foreach (var trackcartId in cartTrackIds) 
+			{
+				if (oldItem_track_id.Contains(trackcartId));
+				return false;
+			}
+			return true;
 		}
 	}
 }
@@ -486,18 +516,38 @@ namespace Services.Implementation
 			}
 			return Result.Success();
 		}
-		public async Task<IList<OrderDto>> GetOrdersRangeByUser(UserProfile userProfile, int start, int take)
+		public async Task<Result<IList<OrderDto>>> GetOrdersRangeByUser(int userProfileId, int start, int take, OrderStatus? status = null)
+		{
+			var error = new Error();
+			var getProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getProfile is null)
+			{
+				error.ErrorMessage = "fail to get user profile";
+				return Result<IList<OrderDto>>.Fail(error);
+			}
+			var getOrderList = await GetOrdersRangeByUser(getProfile,start, take, status);
+			return Result<IList<OrderDto>>.Success(getOrderList);
+		}
+		public async Task<IList<OrderDto>> GetOrdersRangeByUser(UserProfile userProfile, int start, int take, OrderStatus? status = null)
 		{
 			if (start < 0 || take < 0)
 			{
 				return new List<OrderDto>();
 			}
-			var getOrders = await _unitOfWork.Repositories.orderRepository.GetByCondition(order => order.UserId == userProfile.Id, null, "OrderTransactions,OrderItems", start, take);
-			if (getOrders is null)
+			IList<Order> getOrderList;// = new List<Order>();
+			if(status is null)
+			{
+				getOrderList = (await _unitOfWork.Repositories.orderRepository.GetByCondition(order => order.UserId == userProfile.Id, null, "OrderTransactions,OrderItems", start, take)).ToList();
+			}
+			else
+			{
+				getOrderList = (await _unitOfWork.Repositories.orderRepository.GetByCondition(order => order.UserId == userProfile.Id && order.Status.Equals(status.Value), null, "OrderTransactions,OrderItems", start, take)).ToList();
+			}
+			if (getOrderList is null)
 			{
 				return new List<OrderDto>();
 			}
-			return _mapper.Map<IList<OrderDto>>(getOrders);
+			return _mapper.Map<IList<OrderDto>>(getOrderList);
 		}
 	}
 }

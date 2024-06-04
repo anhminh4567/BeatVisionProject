@@ -71,6 +71,7 @@ namespace Shared.ConfigurationBinding
 		public string[] AllowImageExension { get; set; }
         public string[] AllowLicenseExtension { get; set; }
 		public int LinkExpirationTimeMinute { get; set; }
+        public int PagingTakeLimit { get; set; }
 	}
     public class DefaultRelativePath
     {

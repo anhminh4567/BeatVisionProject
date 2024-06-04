@@ -12,6 +12,8 @@ using System.Security.Claims;
 using System.Security.Cryptography.Pkcs;
 using Shared.Models;
 using Shared.Enums;
+using System.Runtime.CompilerServices;
+using Shared.ConfigurationBinding;
 
 namespace BeatVisionProject.Controllers
 {
@@ -21,11 +23,14 @@ namespace BeatVisionProject.Controllers
 	{
 		private readonly AppUserManager _manageUserService;
 		private readonly IUserIdentityService _userIdentityService;
-
-		public ManageIdentityController(AppUserManager manageUserService, IUserIdentityService userIdentityService)
+		private readonly AppsettingBinding _appsettings;
+		private readonly int PAGING_TAKE_LIMIT;
+		public ManageIdentityController(AppUserManager manageUserService, IUserIdentityService userIdentityService, AppsettingBinding appsetting)
 		{
 			_manageUserService = manageUserService;
 			_userIdentityService = userIdentityService;
+			_appsettings = appsetting;
+			PAGING_TAKE_LIMIT = _appsettings.AppConstraints.PagingTakeLimit;
 		}
 
 		[HttpPost("register")]
@@ -213,6 +218,10 @@ namespace BeatVisionProject.Controllers
 		[HttpGet("get-users-paging")]
 		public async Task<ActionResult> GetUsers([FromQuery] int start, [FromQuery]int amount , CancellationToken cancellationToken = default)
 		{
+			if (start < 0 || amount < 0 || amount > PAGING_TAKE_LIMIT)
+			{
+				return BadRequest();
+			}
 			var result = await _userIdentityService.GetUsersPaging(start, amount);
 			if(result.isSuccess is false)
 			{

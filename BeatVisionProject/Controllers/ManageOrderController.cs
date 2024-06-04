@@ -22,13 +22,14 @@ namespace BeatVisionProject.Controllers
 		private readonly PayosService _payOsService;
 		private readonly OrderManager _orderManager;
 		private readonly AppUserManager _userManager;
-
+		private readonly int PAGING_TAKE_LIMIT;
 		public ManageOrderController(AppsettingBinding appsettings, PayosService payOsService, OrderManager orderManager, AppUserManager userManager)
 		{
 			_appsettings = appsettings;
 			_payOsService = payOsService;
 			_orderManager = orderManager;
 			_userManager = userManager;
+			PAGING_TAKE_LIMIT = _appsettings.AppConstraints.PagingTakeLimit;
 		}
 
 		[HttpGet("get-payment-result")]
@@ -137,6 +138,16 @@ namespace BeatVisionProject.Controllers
 			if (sendResult.isSuccess is false)
 				return StatusCode(sendResult.Error.StatusCode, sendResult.Error);
 			return Ok();
+		}
+		[HttpGet("get-order-range")]
+		public async Task<ActionResult> GetOrderRange([FromQuery] int userProfileId, [FromQuery] int start, [FromQuery] int take, [FromQuery] OrderStatus? status = null) 
+		{
+			if (start < 0 || take < 0 || take > PAGING_TAKE_LIMIT || userProfileId <= 0)
+				return BadRequest();
+			var getResult = await _orderManager.GetOrdersRangeByUser(userProfileId,start,take,status);
+			if(getResult.isSuccess is false)
+				return StatusCode(getResult.Error.StatusCode,getResult.Error);
+			return Ok(getResult.Value);
 		}
 	}
 }
