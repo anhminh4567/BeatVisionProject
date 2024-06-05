@@ -608,7 +608,7 @@ namespace Services.Implementation
 			var getTrack =  await _unitOfWork.Repositories.trackRepository.GetById(trackId);
 			if (getTrack is null)
 				return new List<TrackCommentDto>();
-			var getResult = await _commentService.GetTrackComments(getTrack);
+			var getResult = await _commentService.GetTrackCommentsTopLevel(getTrack);
 			return _mapper.Map<IList<TrackCommentDto>>(getResult);
 		}
 		public async Task<IList<TrackCommentDto>> GetTrackCommentReplies(int trackId, int commentId)

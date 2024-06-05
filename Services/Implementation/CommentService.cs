@@ -42,15 +42,22 @@ namespace Services.Implementation
 		}
 		public async Task<IList<TrackComment>> GetTrackComments(Track track)
 		{
-			var getTrackComments =  (await _unitOfWork.Repositories.trackCommentRepository
+			var getTrackComments = (await _unitOfWork.Repositories.trackCommentRepository
 				.GetByCondition(t => t.TrackId == track.Id)).ToList();
 			return getTrackComments;
 		}
-		public async Task<IList<TrackComment>> GetCommentReplys(TrackComment trackComment) 
+
+		public async Task<IList<TrackComment>> GetTrackCommentsTopLevel(Track track)
 		{
-			return (await _unitOfWork.Repositories.trackCommentRepository.GetByCondition(t => t.ReplyToCommentId == trackComment.Id)).ToList() ;
+			var getTrackComments = (await _unitOfWork.Repositories.trackCommentRepository
+				.GetByCondition(t => t.TrackId == track.Id && t.ReplyToCommentId == null)).ToList();
+			return getTrackComments;
 		}
-		public async Task<TrackComment> CreateTrackComment(UserProfile authorProfile, CreateTrackCommentDto createTrackCommentDto) 
+		public async Task<IList<TrackComment>> GetCommentReplys(TrackComment trackComment)
+		{
+			return (await _unitOfWork.Repositories.trackCommentRepository.GetByCondition(t => t.ReplyToCommentId == trackComment.Id)).ToList();
+		}
+		public async Task<TrackComment> CreateTrackComment(UserProfile authorProfile, CreateTrackCommentDto createTrackCommentDto)
 		{
 			var createDate = DateTime.Now;
 			var newComment = new TrackComment();
@@ -65,10 +72,10 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 			return createResult;
 		}
-		public async Task<Result> RemoveComment(UserProfile userProfile ,int commentId)
+		public async Task<Result> RemoveComment(UserProfile userProfile, int commentId)
 		{
 			var getComment = await _unitOfWork.Repositories.commentRepository.GetById(commentId);
-			if(getComment == null)
+			if (getComment == null)
 			{
 				return Result.Fail();
 			}
