@@ -35,14 +35,14 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(getResult.Error.StatusCode, getResult.Error);
 			return Ok(getResult.Value);
 		}
-		[HttpPost("to-users")]
-		public async Task<ActionResult> AdminCreateNotificationToUser([FromForm]CreateMessageDto createMessageDto, [FromForm] IList<int> userIds)
-		{
-			var sendResult =await  _notificationManager.ServerSendNotificationMail_ToGroups(createMessageDto, userIds.ToArray());
-			if (sendResult.isSuccess is false)
-				return StatusCode(sendResult.Error.StatusCode, sendResult.Error);
-			return Ok();
-		}
+		//[HttpPost("to-users")]
+		//public async Task<ActionResult> AdminCreateNotificationToUser([FromForm]CreateMessageDto createMessageDto, [FromForm] IList<int> userIds)
+		//{
+		//	var sendResult =await  _notificationManager.ServerSendNotificationMail_ToGroups(createMessageDto, userIds.ToArray());
+		//	if (sendResult.isSuccess is false)
+		//		return StatusCode(sendResult.Error.StatusCode, sendResult.Error);
+		//	return Ok();
+		//}
 		[HttpPost("admin-create-notification")]
 		public async Task<ActionResult> AdminCreateNotification([FromForm] AdminCreateMessageDto adminCreateMessageDto)
 		{
@@ -55,23 +55,28 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(createResult.Error.StatusCode,createResult.Error);
 			return Ok();
 		}
-		[HttpPost("admin-to-all-subscriber")]
-		public async Task<ActionResult> AdminCreateNotificationToSubscriber()
+		[HttpDelete("delete-message")]
+		public async Task<ActionResult> AdminRemoveMessage([FromQuery]int messageId)
 		{
+			if (messageId <= 0)
+				return BadRequest();
+			var removeMessageResult = await _notificationManager.AdminRemoveMessage(messageId);
+			if (removeMessageResult.isSuccess is false)
+				return StatusCode(removeMessageResult.Error.StatusCode,removeMessageResult.Error);
 			return Ok();
 		}
-		[HttpGet("admin-to-single-subscriber")]
-		public async Task<ActionResult> AdminCreateNotificationToSingle([FromQuery] int profileId)
-		{
-			var messageDto = new CreateMessageDto
-			{
-				Content = $"your have just bought  track",
-				MessageName = "please get your track in the order section on our site",
-				Weight = NotificationWeight.MINOR,
-			};
-			var result = await _notificationManager.ServerSendNotificationMail_ToUser(messageDto,profileId);
-			return Ok();
-		}
+		//[HttpGet("admin-to-single-subscriber")]
+		//public async Task<ActionResult> AdminCreateNotificationToSingle([FromQuery] int profileId)
+		//{
+		//	var messageDto = new CreateMessageDto
+		//	{
+		//		Content = $"your have just bought  track",
+		//		MessageName = "please get your track in the order section on our site",
+		//		Weight = NotificationWeight.MINOR,
+		//	};
+		//	var result = await _notificationManager.ServerSendNotificationMail_ToUser(messageDto,profileId);
+		//	return Ok();
+		//}
 		[HttpGet("get-all")]
 		public async Task<ActionResult> GetUserNotification([FromQuery] int userProfileId)
 		{

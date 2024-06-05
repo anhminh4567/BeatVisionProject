@@ -77,6 +77,14 @@ namespace BeatVisionProject.Controllers
 			var getUserComments = await _appUserManager.GetUserTrackComments(userId);
 			return Ok(getUserComments);
 		}
+		[HttpGet("subscribe")]
+		public async Task<ActionResult> Subscribe([FromQuery] int userId)
+		{
+			var subscribeResult = await _appUserManager.Subscribe(userId);
+			if (subscribeResult.isSuccess is false)
+				return StatusCode(subscribeResult.Error.StatusCode,subscribeResult.Error);
+			return Ok(subscribeResult.Value);
+		}
 	}
 
 }

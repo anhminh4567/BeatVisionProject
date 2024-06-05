@@ -69,13 +69,13 @@ namespace Services.Implementation
 						return Result.Fail(createResult.Error);
 					break;
 				case NotificationType.GROUP:
-					var getSubscriber = (await GetAllSubscriber()).Select(s => s.Id);
-					var createResultGroup = await ServerCreateNotificationToGroups(adminCreateMessageDto,getSubscriber.ToList());
+					var getSubscriber = (await GetAllSubscriber()).Select(s => s.Id); 
+					var createResultGroup = await ServerSendNotificationMail_ToGroups(adminCreateMessageDto,getSubscriber.ToArray());
 					if (createResultGroup.isSuccess is false)
 						return Result.Fail(createResultGroup.Error);
 					break;
 				case NotificationType.SINGLE:
-					var createResultSingle = await ServerCreateNotificationToUser(adminCreateMessageDto,adminCreateMessageDto.UserId.Value);
+					var createResultSingle = await ServerSendNotificationMail_ToUser(adminCreateMessageDto,adminCreateMessageDto.UserId.Value);
 					if (createResultSingle.isSuccess is false)
 						return Result.Fail(createResultSingle.Error);
 					break;
@@ -83,6 +83,19 @@ namespace Services.Implementation
 					error.ErrorMessage = "no appropriate type found";
 					return Result.Fail(error);
 			}
+			return Result.Success();
+		}
+		public async Task<Result> AdminRemoveMessage(int messageId)
+		{
+			var error = new Error();
+			var tryGetMessage = await _unitOfWork.Repositories.messageRepository.GetById(messageId);
+			if(tryGetMessage is null)
+			{
+				error.ErrorMessage = "fail to get message";
+				return Result.Fail(error);
+			}
+			await _unitOfWork.Repositories.messageRepository.Delete(tryGetMessage);
+			await _unitOfWork.SaveChangesAsync();
 			return Result.Success();
 		}
 		public async Task<Result> ServerSendNotificationMail(CreateNotificationForNewTracks notificationForNewTracks)

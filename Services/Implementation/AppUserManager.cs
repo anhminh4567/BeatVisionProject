@@ -276,6 +276,20 @@ namespace Services.Implementation
 				return Result.Fail();
 			return await _commentService.RemoveComment(userProfile, userCommentId);
 		}
+		public async Task<Result<bool>> Subscribe(int userProfileId)
+		{
+			var error = new Error();
+			var getUser = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getUser is null)
+			{
+				error.ErrorMessage = "fail to get user profile";
+				return Result<bool>.Fail(error);
+			}
+			getUser.IsSubcribed = ! getUser.IsSubcribed;
+			await _unitOfWork.Repositories.userProfileRepository.Update(getUser);
+			await _unitOfWork.SaveChangesAsync();
+			return Result<bool>.Success(getUser.IsSubcribed);
+		}
 		private async Task<UserProfile?> GetUserProfileById(int userProfileId)
 		{
 			return  await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
