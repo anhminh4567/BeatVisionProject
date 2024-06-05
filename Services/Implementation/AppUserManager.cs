@@ -40,7 +40,7 @@ namespace Services.Implementation
 		public async Task<Result> IsUserLegit(UserProfile userProfile)
 		{
 			var error = new Error();
-			if(userProfile.IdentityUser is null)
+			if (userProfile.IdentityUser is null)
 			{
 				var getIdentity = await _userIdentityService.UserManager.FindByIdAsync(userProfile.IdentityId.ToString());
 				userProfile.IdentityUser = getIdentity;
@@ -50,16 +50,16 @@ namespace Services.Implementation
 			{
 				return Result.Fail(identityLegitResult.Error);
 			}
-			if(userProfile.AccountStatus == AcccountStatus.BANNED 
+			if (userProfile.AccountStatus == AcccountStatus.BANNED
 				|| userProfile.AccountStatus == AcccountStatus.SUSPENDED)
 			{
 				error.ErrorMessage = "account is banned or suspended";
 				return Result.Fail();
 			}
 			return Result.Success();
-				
+
 		}
-		public async Task<Result<IList<CartItemDto>>>GetAllUserCartItems(int userprofileid)
+		public async Task<Result<IList<CartItemDto>>> GetAllUserCartItems(int userprofileid)
 		{
 			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userprofileid);
 			if (getUserProfile is null)
@@ -78,7 +78,7 @@ namespace Services.Implementation
 				if (cartItem.ItemType.Equals(CartItemType.TRACK))
 				{
 					var getTrack = await _unitOfWork.Repositories.trackRepository.GetByIdInclude(trackId, "AudioFile,Tags,Licenses");
-					if(getTrack is not null)
+					if (getTrack is not null)
 					{
 						cartItem.Track = _mapper.Map<TrackResponseDto>(getTrack);
 						MapCorrectTrackBannderUrl(cartItem.Track);
@@ -103,7 +103,7 @@ namespace Services.Implementation
 				error.ErrorMessage = " not user profile found";
 				return Result.Fail();
 			}
-			 await RemoveUserCartItem(getuserprofile, itemId);
+			await RemoveUserCartItem(getuserprofile, itemId);
 			return Result.Success();
 		}
 		public async Task RemoveUserCartItem(UserProfile userProfile, int itemId)
@@ -117,11 +117,11 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 
 		}
-		public async Task<Result<CartItemDto>> AddUserCartItem(int userProfileId, CartItemType typem, int itemId) 
+		public async Task<Result<CartItemDto>> AddUserCartItem(int userProfileId, CartItemType typem, int itemId)
 		{
 			var error = new Error();
 			var getuserprofile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
-			if(getuserprofile is null)
+			if (getuserprofile is null)
 			{
 				error.ErrorMessage = " not user profile found";
 				return Result<CartItemDto>.Fail(error);
@@ -168,7 +168,7 @@ namespace Services.Implementation
 		{
 			var error = new Error();
 			var getProfile = await GetUserProfileById(userProfileId);
-			if(getProfile is null)
+			if (getProfile is null)
 			{
 				error.ErrorMessage = "cannot find profile";
 				return Result<UserProfileDto>.Fail();
@@ -190,7 +190,7 @@ namespace Services.Implementation
 			MapCorrectProfileUrl(mappedResult);
 			return Result<UserProfileDto>.Success(mappedResult);
 		}
-		public async Task<Result<string>> UpdateProfileImage(Stream filestream, string contentType, string fileName, int  userProfileId, CancellationToken cancellationToken = default)
+		public async Task<Result<string>> UpdateProfileImage(Stream filestream, string contentType, string fileName, int userProfileId, CancellationToken cancellationToken = default)
 		{
 			var error = new Error();
 			var getProfile = await GetUserProfileById(userProfileId);
@@ -199,7 +199,7 @@ namespace Services.Implementation
 				error.ErrorMessage = "cannot find profile";
 				return Result.Fail();
 			}
-			return await UpdateProfileImage(filestream,contentType,fileName,getProfile,cancellationToken);
+			return await UpdateProfileImage(filestream, contentType, fileName, getProfile, cancellationToken);
 		}
 		public async Task<Result<string>> UpdateProfileImage(Stream filestream, string contentType, string fileName, UserProfile userProfile, CancellationToken cancellationToken = default)
 		{
@@ -212,6 +212,7 @@ namespace Services.Implementation
 			}
 			userProfile.ProfileBlobUrl = returnedFileUrl.Value;
 			await _unitOfWork.Repositories.userProfileRepository.Update(userProfile);
+			await _unitOfWork.SaveChangesAsync();
 			if (string.IsNullOrEmpty(oldImageUrl) is false)
 			{
 				var deleteResult = await _imageFileServices.DeleteImageFile(oldImageUrl, cancellationToken);
@@ -244,7 +245,7 @@ namespace Services.Implementation
 		public async Task<Result<IList<TrackCommentDto>>> GetUserTrackComments(int userProfileId)
 		{
 			var getProfile = await GetUserProfileById(userProfileId);
-			if(getProfile is null)
+			if (getProfile is null)
 			{
 				var error = new Error();
 				error.ErrorMessage = "cannot found profile";
@@ -264,17 +265,45 @@ namespace Services.Implementation
 			var returnResult = _mapper.Map<IList<TrackCommentDto>>(getUserTrackComments);
 			return Result<IList<TrackCommentDto>>.Success(returnResult);
 		}
-		public async Task<Result<TrackCommentDto>> CreateComment(UserProfile userProfile, CreateTrackCommentDto createTrackCommentDto, int? replyToComment_Id = null)
+		public async Task<Result<TrackCommentDto>> CreateCommentReply(int userProfileId, CreateTrackCommentDto createTrackCommentDto) 
 		{
-			var createResult = await _commentService.CreateTrackComment(userProfile, createTrackCommentDto);
+			var error = new Error();
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getUserProfile is null)
+			{
+				error.ErrorMessage = "fail to get user profile";
+				return Result<TrackCommentDto>.Fail(error);
+			}
+			var createResult = await _commentService.CreateTrackComment(getUserProfile, createTrackCommentDto);
 			var mapResponse = _mapper.Map<TrackCommentDto>(createResult);
 			return Result<TrackCommentDto>.Success(mapResponse);
 		}
-		public async Task<Result> RemoveComment(UserProfile userProfile, int userCommentId)
+		public async Task<Result<TrackCommentDto>> CreateComment(int userProfileId, CreateTrackCommentDto createTrackCommentDto)
+		{
+			var error = new Error();
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getUserProfile is null)
+			{
+				error.ErrorMessage = "fail to get user profile";
+				return Result<TrackCommentDto>.Fail(error);
+			}
+			createTrackCommentDto.ReplyToCommentId = null;
+			var createResult = await _commentService.CreateTrackComment(getUserProfile, createTrackCommentDto);
+			var mapResponse = _mapper.Map<TrackCommentDto>(createResult);
+			return Result<TrackCommentDto>.Success(mapResponse);
+		}
+		public async Task<Result> RemoveComment(int  userProfileId, int userCommentId)
 		{
 			if (userCommentId == null)
 				return Result.Fail();
-			return await _commentService.RemoveComment(userProfile, userCommentId);
+			var error = new Error();
+			var getUserProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			if (getUserProfile is null)
+			{
+				error.ErrorMessage = "fail to get user profile";
+				return Result.Fail(error);
+			}
+			return await _commentService.RemoveComment(getUserProfile, userCommentId);
 		}
 		public async Task<Result<bool>> Subscribe(int userProfileId)
 		{
@@ -285,24 +314,24 @@ namespace Services.Implementation
 				error.ErrorMessage = "fail to get user profile";
 				return Result<bool>.Fail(error);
 			}
-			getUser.IsSubcribed = ! getUser.IsSubcribed;
+			getUser.IsSubcribed = !getUser.IsSubcribed;
 			await _unitOfWork.Repositories.userProfileRepository.Update(getUser);
 			await _unitOfWork.SaveChangesAsync();
 			return Result<bool>.Success(getUser.IsSubcribed);
 		}
 		private async Task<UserProfile?> GetUserProfileById(int userProfileId)
 		{
-			return  await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
+			return await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
 		}
 		private void MapCorrectProfileUrl(UserProfileDto userProfileDto)
 		{
-			userProfileDto.ProfileBlobUrl =  string.IsNullOrEmpty(userProfileDto.ProfileBlobUrl) 
-				? userProfileDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/"+ ApplicationStaticValue.DefaultProfileImageName
+			userProfileDto.ProfileBlobUrl = string.IsNullOrEmpty(userProfileDto.ProfileBlobUrl)
+				? userProfileDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + ApplicationStaticValue.DefaultProfileImageName
 				: userProfileDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + userProfileDto.ProfileBlobUrl;
 		}
-		private void MapCorrectTrackBannderUrl(TrackResponseDto trackResponseDto) 
+		private void MapCorrectTrackBannderUrl(TrackResponseDto trackResponseDto)
 		{
-			trackResponseDto.ProfileBlobUrl = string.IsNullOrEmpty(trackResponseDto.ProfileBlobUrl) 
+			trackResponseDto.ProfileBlobUrl = string.IsNullOrEmpty(trackResponseDto.ProfileBlobUrl)
 				? trackResponseDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + ApplicationStaticValue.DefaultTrackImageName
 				: trackResponseDto.ProfileBlobUrl = _appsettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + trackResponseDto.ProfileBlobUrl;
 		}

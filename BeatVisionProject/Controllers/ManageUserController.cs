@@ -71,12 +71,7 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok();
 		}
-		[HttpGet("get-track-comment")]
-		public async Task<ActionResult> GetUserTrackComment([FromQuery]int userId)
-		{
-			var getUserComments = await _appUserManager.GetUserTrackComments(userId);
-			return Ok(getUserComments);
-		}
+		
 		[HttpGet("subscribe")]
 		public async Task<ActionResult> Subscribe([FromQuery] int userId)
 		{

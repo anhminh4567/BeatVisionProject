@@ -42,8 +42,9 @@ namespace Services.Implementation
 		}
 		public async Task<IList<TrackComment>> GetTrackComments(Track track)
 		{
-			return (await _unitOfWork.Repositories.trackCommentRepository
-				.GetByCondition(t => t.Id == track.Id)).ToList();
+			var getTrackComments =  (await _unitOfWork.Repositories.trackCommentRepository
+				.GetByCondition(t => t.TrackId == track.Id)).ToList();
+			return getTrackComments;
 		}
 		public async Task<IList<TrackComment>> GetCommentReplys(TrackComment trackComment) 
 		{
@@ -79,5 +80,16 @@ namespace Services.Implementation
 			await _unitOfWork.SaveChangesAsync();
 			return Result.Success();
 		}
+		//public async Task<Result> LikeComment(int commentId)
+		//{
+		//	var error = new Error();
+		//	var getComment = await _unitOfWork.Repositories.commentRepository.GetById(commentId);
+		//	if (getComment == null)
+		//	{
+		//		error.ErrorMessage = "fail to get command";
+		//		return Result.Fail();
+		//	}
+		//	getComment
+		//}
 	}
 }

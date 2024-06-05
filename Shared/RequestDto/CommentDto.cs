@@ -29,4 +29,13 @@ namespace Shared.RequestDto
 			CommentType = Enums.CommentType.TRACK; 
 		}
 	}
+	public class RemoveCommentDto
+	{
+		[Required]
+		[Range(0, int.MaxValue)]
+		public int UserProfileId { get; set; }
+		[Required]
+		[Range(0, int.MaxValue)]
+		public int CommentId { get; set; }
+	}
 }

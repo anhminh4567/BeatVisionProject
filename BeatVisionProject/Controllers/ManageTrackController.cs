@@ -126,18 +126,7 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok();
 		}
-		[HttpGet("get-comments")]
-		public async Task<ActionResult> GetTrackComments([FromQuery] int trackId)
-		{
-			var getComments = await _trackManager.GetTrackComments(trackId);
-			return Ok(getComments);
-		}
-		[HttpGet("get-comments-reply")]
-		public async Task<ActionResult> GetTrackCommentReplies([FromQuery] int trackId, [FromQuery] int commentId)
-		{
-			var getComments = await _trackManager.GetTrackCommentReplies(trackId, commentId);
-			return Ok(getComments);
-		}
+		
 		[HttpGet("get-track-license")]
 		public async Task<ActionResult> GetTrackLicense([FromQuery]int licenseId)
 		{
