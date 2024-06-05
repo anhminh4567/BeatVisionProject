@@ -219,6 +219,7 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(deleteResult.Error.StatusCode,deleteResult.Error);
 			return Ok();
 		}
+
 		[HttpPut]
 		public async Task<ActionResult> UpdateTrack([FromForm] UpdateTrackDto updateTrackDto)
 		{
@@ -245,6 +246,16 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(downloadResult.Error.StatusCode,downloadResult.Error);
 			downloadResult.Value.Stream.Position = 0;
 			return File(downloadResult.Value.Stream,downloadResult.Value.ContentType,$"itemid{getOrderItem.Id}orderid{getOrder.Id}.zip",true );
+		}
+		[HttpGet("plus-play-count")]
+		public async Task<ActionResult> AddTrackPlayCount([FromQuery] int trackId)
+		{
+			if(trackId <= 0)
+				return BadRequest();
+			var addResult = await _trackManager.AddTrackPlayCount(trackId);
+			if (addResult.isSuccess is false)
+				return StatusCode(addResult.Error.StatusCode, addResult.Error);
+			return Ok();
 		}
 	}
 }

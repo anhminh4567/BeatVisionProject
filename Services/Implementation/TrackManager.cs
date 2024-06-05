@@ -842,6 +842,20 @@ namespace Services.Implementation
 				return Result<BlobFileResponseDto>.Fail();
 			}
 		}
+		public async Task<Result> AddTrackPlayCount(int trackId)
+		{
+			var error = new Error();
+			var getTrack = await _unitOfWork.Repositories.trackRepository.GetById(trackId);
+			if(getTrack is null)
+			{
+				error.ErrorMessage = "fail to get track";
+				return Result.Fail(error);
+			}
+			getTrack.PlayCount += 1;
+			await _unitOfWork.Repositories.trackRepository.Update(getTrack);
+			await _unitOfWork.SaveChangesAsync();
+			return Result.Success();
+		}
 		private bool ValidateIfTrackIsForDownload(Track track)
 		{
 			if (track.PublishDateTime.HasValue is false)

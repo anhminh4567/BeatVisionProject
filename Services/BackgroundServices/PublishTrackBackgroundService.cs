@@ -20,7 +20,7 @@ namespace Services.BackgroundServices
 			_trackManager = trackManager;
 		}
 
-		public async  Task Execute(IJobExecutionContext context)
+		public async Task Execute(IJobExecutionContext context)
 		{
 			Console.WriteLine("background publish is triggered");
 			await _trackManager.PublishTrack();
