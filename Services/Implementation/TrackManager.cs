@@ -855,6 +855,7 @@ namespace Services.Implementation
 			track.ProfileBlobUrl = string.IsNullOrEmpty(track.ProfileBlobUrl)
 					? _appSettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + ApplicationStaticValue.DefaultTrackImageName
 					: _appSettings.ExternalUrls.AzureBlobBaseUrl + "/public/" + track.ProfileBlobUrl;
+		
 		}
 	}
 

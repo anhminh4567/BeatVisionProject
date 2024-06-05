@@ -14,11 +14,18 @@ namespace Shared.RequestDto
 		public string MessageName { get; set; }
 		[Required]
 		public string Content { get; set; }
+
 		[Required]
 		public NotificationWeight Weight { get; set; }
 	}
 	public class CreateNotificationForNewTracks : CreateMessageDto
 	{
 		public int TrackId { get; set; }
+	}
+	public class AdminCreateMessageDto : CreateMessageDto
+	{
+		[Required]
+		public NotificationType Type { get; set; }
+		public int? UserId { get; set; }
 	}
 }

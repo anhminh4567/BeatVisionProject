@@ -14,6 +14,7 @@ using Shared.Models;
 using Shared.Enums;
 using System.Runtime.CompilerServices;
 using Shared.ConfigurationBinding;
+using System.Threading;
 
 namespace BeatVisionProject.Controllers
 {
@@ -53,6 +54,36 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(loginResult.Error.StatusCode, loginResult.Error);
 			}
 			return Ok(loginResult.Value);
+		}
+		[HttpPost("register-admin")]
+		public async Task<ActionResult> RegisterAdmin(RegisterDto registerDto)
+		{
+			var registerResult = await _userIdentityService.CreateAdmin(registerDto);
+			if (registerResult.isSuccess is false)
+			{
+				return StatusCode(registerResult.Error.StatusCode, registerResult.Error);
+			}
+			return Ok(registerResult.Value);
+		}
+		[HttpPost("login-admin")]
+		public async Task<IActionResult> LoginAdmin(LoginDto loginDto, CancellationToken cancellationToken = default)
+		{
+			var loginResult = await _userIdentityService.LoginAdmin(loginDto, cancellationToken);
+			if (loginResult.isSuccess is false)
+			{
+				return StatusCode(loginResult.Error.StatusCode, loginResult.Error);
+			}
+			return Ok(loginResult.Value);
+		}
+		[HttpDelete("delete-admin")]
+		public async Task<ActionResult> DeleteAdmin([FromQuery] int currentAdminId, [FromQuery] int tobeDeleteAdminId)
+		{
+			if (currentAdminId < 0 || tobeDeleteAdminId < 0)
+				return BadRequest();
+			var deleteResult = await _userIdentityService.DeleteAdmin(currentAdminId, tobeDeleteAdminId);
+			if(deleteResult.isSuccess is false)
+				return StatusCode(deleteResult.Error.StatusCode,deleteResult.Error);
+			return Ok();
 		}
 		[HttpPost("logout")]
 		[Authorize]
@@ -222,7 +253,8 @@ namespace BeatVisionProject.Controllers
 			{
 				return BadRequest();
 			}
-			var result = await _userIdentityService.GetUsersPaging(start, amount);
+			var trueStart = start * amount;
+			var result = await _userIdentityService.GetUsersPaging(trueStart, amount);
 			if(result.isSuccess is false)
 			{
 				return StatusCode(result.Error.StatusCode, result.Error);

@@ -38,6 +38,9 @@ namespace Services.BackgroundServices
 			{
 				Console.WriteLine(order.Id);
 			}
+			//Console.WriteLine("count: " + ThreadPool.ThreadCount);
+			//Console.WriteLine("count current: " + Thread.CurrentThread.Name );
+
 			//throw new NotImplementedException();
 		}
 	}

@@ -24,7 +24,8 @@ namespace Services.BackgroundServices
 		{
 			Console.WriteLine("background publish is triggered");
 			await _trackManager.PublishTrack();
-			
+			//Console.WriteLine("count: " + ThreadPool.ThreadCount);
+			//Console.WriteLine("count current: " + Task.CurrentId);
 		}
 	}
 }

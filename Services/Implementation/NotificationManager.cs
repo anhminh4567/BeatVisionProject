@@ -58,6 +58,33 @@ namespace Services.Implementation
 			var result = await CreateNotification(create, NotificationType.ALL, create.Weight, null, true);
 			return result;
 		}
+		public async Task<Result> AdminCreateNotification(AdminCreateMessageDto adminCreateMessageDto)
+		{
+			var error = new Error();
+			switch(adminCreateMessageDto.Type)
+			{
+				case NotificationType.ALL:
+					var createResult =await ServerCreateNotificationToAll(adminCreateMessageDto);
+					if (createResult.isSuccess is false)
+						return Result.Fail(createResult.Error);
+					break;
+				case NotificationType.GROUP:
+					var getSubscriber = (await GetAllSubscriber()).Select(s => s.Id);
+					var createResultGroup = await ServerCreateNotificationToGroups(adminCreateMessageDto,getSubscriber.ToList());
+					if (createResultGroup.isSuccess is false)
+						return Result.Fail(createResultGroup.Error);
+					break;
+				case NotificationType.SINGLE:
+					var createResultSingle = await ServerCreateNotificationToUser(adminCreateMessageDto,adminCreateMessageDto.UserId.Value);
+					if (createResultSingle.isSuccess is false)
+						return Result.Fail(createResultSingle.Error);
+					break;
+				default:
+					error.ErrorMessage = "no appropriate type found";
+					return Result.Fail(error);
+			}
+			return Result.Success();
+		}
 		public async Task<Result> ServerSendNotificationMail(CreateNotificationForNewTracks notificationForNewTracks)
 		{
 			var getSubscribers = (await GetAllSubscriber());
@@ -99,6 +126,8 @@ namespace Services.Implementation
 				return Result.Fail();
 			foreach (var user in getUser)
 			{
+				if( user.IsSubcribed is false) 
+					continue;
 				var meta = new EmailMetaData()
 				{
 					ToEmail = user.IdentityUser.Email,
@@ -142,6 +171,10 @@ namespace Services.Implementation
 				UserToSend = _mapper.Map<UserProfileDto>(getUser),
 				Weight = createMessageDto.Weight.ToString(),
 			};
+			if(getUser.IsSubcribed is false)
+			{
+				return Result.Success();
+			}
 			_mailService.SendEmailWithTemplate<NotificationEmailModel>(meta, _appsettings.MailTemplateAbsolutePath.FirstOrDefault(m => m.TemplateName.Equals("NotificationEmail")).TemplateAbsolutePath, notiModel);
 			return Result.Success();
 		}
@@ -247,6 +280,35 @@ namespace Services.Implementation
 				error.ErrorMessage = ex.Message;
 				return Result.Fail();
 			}
+		}
+		public async Task<Result<PagingResponseDto< IList<MessageDto>>>> GetServerNotificationRange(int start, int take, NotificationType? type = null, bool orderByCreateDate = true)  
+		{
+			var error = new Error();
+			if (start < 0 || take < 0)
+			{
+				error.ErrorMessage = "start and take not legit";
+				return Result<PagingResponseDto<IList<MessageDto>>>.Fail();
+			}
+			IList<Message> messages = new List<Message>();
+			if(type == null)
+			{
+				messages = ( await _unitOfWork.Repositories.messageRepository.GetByCondition(m => m.CreatorId == null,null,"",start,take) ).ToList();
+			}
+			else
+			{
+				messages = (await _unitOfWork.Repositories.messageRepository.GetByCondition(m => m.CreatorId == null && m.Type == type, null, "", start, take)).ToList();
+			}
+			if(orderByCreateDate)
+			{
+				messages = messages.OrderBy(m => m.CreatedDate).ToList();
+			}
+			var mappedResult = _mapper.Map<IList<MessageDto>>(messages);
+			return Result<PagingResponseDto<IList<MessageDto>>>.Success(new PagingResponseDto<IList<MessageDto>> 
+			{ 
+				TotalCount = _unitOfWork.Repositories.messageRepository.COUNT ,
+				Value = mappedResult,
+			});
+
 		}
 		public async Task<Result<IList<NotificationDto>>> GetUserNotifications(int userProfileId, bool getIsNotReadOnly = false)
 		{

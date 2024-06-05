@@ -114,10 +114,7 @@ namespace Services
 					}
 				};
             });
-
             
-            
-			
 			services.AddStackExchangeRedisCache(opt => 
             {
                 var connectionString = appsettingBinding.ConnectionStrings.CacheConnectionString; 

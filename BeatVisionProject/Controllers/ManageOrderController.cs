@@ -144,7 +144,8 @@ namespace BeatVisionProject.Controllers
 		{
 			if (start < 0 || take < 0 || take > PAGING_TAKE_LIMIT || userProfileId <= 0)
 				return BadRequest();
-			var getResult = await _orderManager.GetOrdersRangeByUser(userProfileId,start,take,status);
+			var trueStart = start * take;
+			var getResult = await _orderManager.GetOrdersRangeByUser(userProfileId, trueStart, take,status);
 			if(getResult.isSuccess is false)
 				return StatusCode(getResult.Error.StatusCode,getResult.Error);
 			return Ok(getResult.Value);

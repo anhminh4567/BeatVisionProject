@@ -5,6 +5,7 @@ using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.RequestDto;
 using System.Diagnostics.Contracts;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace BeatVisionProject.Controllers
@@ -23,7 +24,17 @@ namespace BeatVisionProject.Controllers
 			_appsettings = appsettings;
 			_appUserManager = appUserManager;
 		}
-
+		[HttpGet("server-get-range")]
+		public async Task<ActionResult> AdminGetAllNotiServer([FromQuery] int start, [FromQuery] int take, [FromQuery] NotificationType? type, [FromQuery] bool orderDate = false)
+		{
+			if (start < 0 || take < 0)
+				return BadRequest();
+			var trueStart = start * take;
+			var getResult = await _notificationManager.GetServerNotificationRange(trueStart,take,type,orderDate);
+			if (getResult.isSuccess is false)
+				return StatusCode(getResult.Error.StatusCode, getResult.Error);
+			return Ok(getResult.Value);
+		}
 		[HttpPost("to-users")]
 		public async Task<ActionResult> AdminCreateNotificationToUser([FromForm]CreateMessageDto createMessageDto, [FromForm] IList<int> userIds)
 		{
@@ -32,9 +43,16 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(sendResult.Error.StatusCode, sendResult.Error);
 			return Ok();
 		}
-		[HttpPost("admin-to-all")]
-		public async Task<ActionResult> AdminCreateNotification()
+		[HttpPost("admin-create-notification")]
+		public async Task<ActionResult> AdminCreateNotification([FromForm] AdminCreateMessageDto adminCreateMessageDto)
 		{
+			if(adminCreateMessageDto.Type == NotificationType.SINGLE && adminCreateMessageDto.UserId is null )
+				return BadRequest();
+			if (adminCreateMessageDto.Type == NotificationType.SINGLE && adminCreateMessageDto.UserId <= 0)
+				return BadRequest();
+			var createResult = await _notificationManager.AdminCreateNotification(adminCreateMessageDto);
+			if(createResult.isSuccess is false)
+				return StatusCode(createResult.Error.StatusCode,createResult.Error);
 			return Ok();
 		}
 		[HttpPost("admin-to-all-subscriber")]

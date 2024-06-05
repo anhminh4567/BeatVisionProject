@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
 using System.Threading;
@@ -36,7 +37,8 @@ namespace Services.Implementation
 		private readonly JwtSection _jwtSettings;
 		private readonly IMyEmailService _mailServices;
 		private readonly IMapper _mapper;
-
+		private const string ADMIN_ROLE_NAME = "admin";
+		private const string USER_ROLE_NAME = "User";
 		public UserIdentityServices(UserManager<CustomIdentityUser> userManager, RoleManager<CustomIdentityRole> roleManager, SignInManager<CustomIdentityUser> signinManager, ISecurityTokenServices securityTokenServices, IUnitOfWork unitOfWork, AppsettingBinding settings,  IMyEmailService mailServices, IMapper mapper)
 		{
 			UserManager = userManager;
@@ -126,7 +128,7 @@ namespace Services.Implementation
 		{
 			var error = new Error();
 			var tryGetUser = await UserManager.FindByEmailAsync(identityUser.Email);
-			if (tryGetUser is not null)
+			if (tryGetUser is not null )
 			{
 				error.ErrorMessage = "user already exist";
 				error.StatusCode = StatusCodes.Status400BadRequest;
@@ -179,8 +181,9 @@ namespace Services.Implementation
 		public async Task<Result<TokenResponseDto>> Login(LoginDto loginDto, CancellationToken cancellationToken)
 		{
 			var error = new Error();
+			var getUsers = await UserManager.GetUsersInRoleAsync(USER_ROLE_NAME);
 			var tryGetUser = await UserManager.FindByEmailAsync(loginDto.Email);
-			if (tryGetUser == null)
+			if (tryGetUser == null || getUsers.Contains(tryGetUser) is false)
 			{
 				error.ErrorMessage = "user not found";
 				error.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -204,6 +207,130 @@ namespace Services.Implementation
 			error.ErrorMessage = "user fail to login";
 			error.StatusCode = (int)HttpStatusCode.BadRequest;
 			return Result<TokenResponseDto>.Fail(error);
+		}
+		public async Task<Result<TokenResponseDto>> CreateAdmin(RegisterDto registerDto)
+		{
+			var error = new Error();
+			var tryGetUser = await UserManager.FindByEmailAsync(registerDto.Email);
+			if (tryGetUser is not null)
+			{
+				error.ErrorMessage = "user already exist";
+				error.StatusCode = StatusCodes.Status400BadRequest;
+				return Result<TokenResponseDto>.Fail(error);
+			}
+			var newUser = new CustomIdentityUser()
+			{
+				Email = registerDto.Email,
+				UserName = registerDto.Email,
+				//Dob = registerDto.Dob,
+				SecurityStamp = Guid.NewGuid().ToString(),
+				ConcurrencyStamp = Guid.NewGuid().ToString(),
+				EmailConfirmed = true,
+				TwoFactorEnabled = false,
+				LockoutEnabled = false,
+			};
+			await _unitOfWork.BeginTransactionAsync();
+			var createResult =await UserManager.CreateAsync(newUser,registerDto.Password);
+			await _unitOfWork.SaveChangesAsync();
+			if(createResult.Succeeded is false)
+			{
+				await _unitOfWork.RollBackAsync();
+				error.ErrorMessage = "fail to create admin, try again later";
+				return Result<TokenResponseDto>.Fail(error);
+			}
+			var addResult = await UserManager.AddToRoleAsync(newUser, ADMIN_ROLE_NAME);
+			await _unitOfWork.SaveChangesAsync();
+			if (addResult.Succeeded is false)
+			{
+				await _unitOfWork.RollBackAsync();
+				error.ErrorMessage = "fail to add admin to the role, try again later";
+				return Result<TokenResponseDto>.Fail(error);
+			}
+			//var newUserProfile = new UserProfile()
+			//{
+			//	IdentityId = newUser.Id,
+			//	Fullname = registerDto.Fullname,
+			//	AccountStatus = AcccountStatus.ACTIVE,
+			//};
+			//newUserProfile.IdentityId = getUser.Id;
+			//newUserProfile.Fullname = registerDto.Fullname;
+			//newUserProfile.AccountStatus = AcccountStatus.ACTIVE;
+			//newUserProfile.TotalTrack = 0;
+			//newUserProfile.TotalTrack = 0;
+			//var createResult = await _unitOfWork.Repositories.userProfileRepository.Create(newUserProfile);
+			var generateTokenResult = await GenerateTokensForUsers(newUser);
+			if (generateTokenResult.isSuccess is false)
+			{
+				await _unitOfWork.RollBackAsync();
+				error.StatusCode = (int)HttpStatusCode.InternalServerError;
+				error.ErrorMessage = "cannot creat token ";
+				return Result<TokenResponseDto>.Fail(error);
+			}
+			await _unitOfWork.CommitAsync();
+			return Result<TokenResponseDto>.Success(generateTokenResult.Value);
+		}
+		public async Task<Result<TokenResponseDto>> LoginAdmin(LoginDto loginDto, CancellationToken cancellationToken)
+		{
+			var error = new Error();
+			var getUsersAdmin = await UserManager.GetUsersInRoleAsync(ADMIN_ROLE_NAME);
+			if(getUsersAdmin is null)
+			{
+				error.ErrorMessage = "there are no admin yet, create one";
+				return Result<TokenResponseDto>.Fail(error);
+			}
+			var tryGetUser = getUsersAdmin.FirstOrDefault (u => u.Email ==  loginDto.Email);
+			if (tryGetUser == null)
+			{
+				error.ErrorMessage = "user not found";
+				return Result<TokenResponseDto>.Fail(error);
+			}
+			var loginResult = await UserManager.CheckPasswordAsync(tryGetUser, loginDto.Password);
+			if (loginResult)
+			{
+				var generateTokenResult = await GenerateTokensForUsers(tryGetUser);
+				if (generateTokenResult.isSuccess is false)
+				{
+					error.StatusCode = (int)HttpStatusCode.InternalServerError;
+					error.ErrorMessage = "cannot creat token ";
+					return Result<TokenResponseDto>.Fail(error);
+				}
+				else
+				{
+					return Result<TokenResponseDto>.Success(generateTokenResult.Value);
+				}
+			}
+			error.ErrorMessage = "user fail to login";
+			error.StatusCode = (int)HttpStatusCode.BadRequest;
+			return Result<TokenResponseDto>.Fail(error);
+		}
+		public async Task<Result> DeleteAdmin(int currentAdminId, int tobeDeletedId)
+		{
+			var error = new Error();
+			if(currentAdminId == tobeDeletedId)
+			{
+				error.ErrorMessage = "cannot delete yourself";
+				return Result.Fail(error);
+			}
+			var getAdmins = await UserManager.GetUsersInRoleAsync(ADMIN_ROLE_NAME);
+			if(getAdmins is null)
+			{
+				error.ErrorMessage = "no admin found";
+				return Result.Fail(error);
+			}
+			var getAdminsId = getAdmins.Select(u => u.Id);
+			if(getAdminsId.Contains(currentAdminId) is false || getAdminsId.Contains(tobeDeletedId) is false)
+			{
+				error.ErrorMessage = "admin id not found";
+				return Result.Fail(error) ;	
+			}
+			var getAdminTobeDeleted = getAdmins.FirstOrDefault(admin => admin.Id == tobeDeletedId);
+			var deleteResult = await UserManager.DeleteAsync(getAdminTobeDeleted);
+			if(deleteResult.Succeeded is false)
+			{
+				error.ErrorMessage = "fail to deletee";
+				return Result.Fail(error);
+			}
+			return Result.Success();
 		}
 		public async Task<Result> Logout(CustomIdentityUser user)
 		{
@@ -480,7 +607,7 @@ namespace Services.Implementation
 			var mappedResult = _mapper.Map<IList<CustomIdentityUserDto>>(getAllUserInRole);
 			return Result<IList<CustomIdentityUserDto>>.Success(mappedResult);
 		}
-		public async Task<Result<IList<CustomIdentityUserDto>>> GetUsersPaging(int start, int amount)
+		public async Task<Result<PagingResponseDto<  IList<CustomIdentityUserDto>>>> GetUsersPaging(int start, int amount)
 		{
 			var error = new Error();
 			var getUsers = (await _unitOfWork.Repositories.customIdentityUser.GetByCondition(null, null, "", start, amount)).ToList();
@@ -488,10 +615,14 @@ namespace Services.Implementation
 			{
 				error.ErrorMessage = "fail to get user by id, somethin wrong ";
 				error.StatusCode = StatusCodes.Status500InternalServerError;
-				return Result<IList<CustomIdentityUserDto>>.Fail(error);
+				return Result<PagingResponseDto<IList<CustomIdentityUserDto>>>.Fail(error);
 			}
 			var mappedResult = _mapper.Map<IList<CustomIdentityUserDto>>(getUsers);
-			return Result<IList<CustomIdentityUserDto>>.Success(mappedResult);
+			return Result<PagingResponseDto<IList<CustomIdentityUserDto>>>.Success(new PagingResponseDto<IList<CustomIdentityUserDto>>
+			{
+				TotalCount = _unitOfWork.Repositories.customIdentityUser.COUNT,
+				Value = mappedResult
+			}); ;
 		}
 		public async Task<Result> IsUserIdentityLegit(CustomIdentityUser user)
 		{

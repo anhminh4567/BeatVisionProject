@@ -240,8 +240,8 @@ namespace BeatVisionProject.Controllers
 				return StatusCode(updateResult.Error.StatusCode,updateResult.Error);
 			return Ok();
 		}
-		[HttpPost("download-bought-content")]
-		public async Task<ActionResult> DownloadTrackOrderItem(RequestDownloadBoughtContentDto requestDownloadBoughtContentDto) 
+		[HttpGet("download-bought-content")]
+		public async Task<ActionResult> DownloadTrackOrderItem([FromQuery] RequestDownloadBoughtContentDto requestDownloadBoughtContentDto) 
 		{
 			var getOrder =await _orderManager.GetOrderDetail(requestDownloadBoughtContentDto.OrderId);	
 			if(getOrder is null)

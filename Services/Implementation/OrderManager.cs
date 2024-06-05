@@ -516,17 +516,21 @@ namespace Services.Implementation
 			}
 			return Result.Success();
 		}
-		public async Task<Result<IList<OrderDto>>> GetOrdersRangeByUser(int userProfileId, int start, int take, OrderStatus? status = null)
+		public async Task<Result<PagingResponseDto< IList<OrderDto>>>> GetOrdersRangeByUser(int userProfileId, int start, int take, OrderStatus? status = null)
 		{
 			var error = new Error();
 			var getProfile = await _unitOfWork.Repositories.userProfileRepository.GetById(userProfileId);
 			if (getProfile is null)
 			{
 				error.ErrorMessage = "fail to get user profile";
-				return Result<IList<OrderDto>>.Fail(error);
+				return Result<PagingResponseDto<IList<OrderDto>>>.Fail(error);
 			}
 			var getOrderList = await GetOrdersRangeByUser(getProfile,start, take, status);
-			return Result<IList<OrderDto>>.Success(getOrderList);
+			return Result<PagingResponseDto<IList<OrderDto>>>.Success(new PagingResponseDto<IList<OrderDto>>
+			{
+				TotalCount =  _unitOfWork.Repositories.orderRepository.COUNT,
+				Value = getOrderList
+			});;
 		}
 		public async Task<IList<OrderDto>> GetOrdersRangeByUser(UserProfile userProfile, int start, int take, OrderStatus? status = null)
 		{

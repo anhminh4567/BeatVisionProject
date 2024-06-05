@@ -22,7 +22,9 @@ namespace Services.Interface
         Task<Result<TokenResponseDto>> Register(RegisterDto registerDto, CancellationToken cancellationToken = default);
         Task<Result<TokenResponseDto>> Login(LoginDto loginDto, CancellationToken cancellationToken=default);
 		Task<Result<TokenResponseDto>> CreateUser(CustomIdentityUser identityUser, UserProfile userProfile);
-
+        Task<Result<TokenResponseDto>> CreateAdmin(RegisterDto registerDto);
+		Task<Result<TokenResponseDto>> LoginAdmin(LoginDto loginDto, CancellationToken cancellationToken = default);
+        Task<Result> DeleteAdmin(int currentAdminId, int tobeDeletedId);
 		Task<Result> Logout(CustomIdentityUser user);
         Task<Result<TokenResponseDto>> Refresh(string accessToken, string refreshToken);
         Task<Result> ChangePassword(CustomIdentityUser user, string oldPassword, string newPassword);
@@ -40,7 +42,7 @@ namespace Services.Interface
 		Task<Result<IList<Claim>>> GetUserIdentity(string accessToken, bool isIncludeDetail = false);
 
 		Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId);
-        Task<Result<IList<CustomIdentityUserDto>>> GetUsersPaging(int start, int amount);
+        Task<Result<PagingResponseDto<IList<CustomIdentityUserDto>>>> GetUsersPaging(int start, int amount);
         Task<Result> IsUserIdentityLegit(CustomIdentityUser user);
 	}
 }
