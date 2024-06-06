@@ -114,9 +114,10 @@ namespace BeatVisionProject.Controllers
 		{
 			var getOrder = await _orderManager.GetOrderByOrderCode(payosReturnData.orderCode);
 			var cancelResult = await _orderManager.OnCancelUrl(payosReturnData, getOrder);
-			var scheme = HttpContext.Request.Scheme;
-			var host = HttpContext.Request.Host;
-			var fullUrl = $"{scheme}://{host}/swagger/index.html";
+            var scheme = HttpContext.Request.Scheme;
+			var host = "localhost:4123";
+            /*var host = HttpContext.Request.Host;*/
+            var fullUrl = $"http://{host}/checkout/payment/failed";
 			return Redirect(fullUrl);
 		}
 		[HttpGet("success-order-hook")]
@@ -126,9 +127,10 @@ namespace BeatVisionProject.Controllers
 			var httpContext = HttpContext;
 			var getOrder = await _orderManager.GetOrderByOrderCode(payosReturnData.orderCode);
 			var paidResult = await _orderManager.OnReturnUrl(payosReturnData, getOrder);
-			var scheme = HttpContext.Request.Scheme;
-			var host = HttpContext.Request.Host;
-			var fullUrl = $"{scheme}://{host}/swagger/index.html";
+            var scheme = HttpContext.Request.Scheme;
+            var host = "localhost:4123";
+            /*var host = HttpContext.Request.Host;*/
+			var fullUrl = $"http://{host}/checkout/payment/success";
 			return Redirect(fullUrl);
 		}
 		[HttpGet("send-billing-test")]

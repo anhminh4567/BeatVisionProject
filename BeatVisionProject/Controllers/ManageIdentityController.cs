@@ -173,13 +173,13 @@ namespace BeatVisionProject.Controllers
 			}
 		}
 		[HttpPost("change-password")]
-		[Authorize]
-		public async Task<IActionResult> ChangePassword(ChangePasswordDto changePasswordDto)
+		public async Task<IActionResult> ChangePassword([FromForm] ChangePasswordDto changePasswordDto, [FromQuery] string userId)
 		{
-			var userIdFromClaim = User.Claims.FirstOrDefault(c => c.Type.Equals(ApplicationStaticValue.UserIdClaimType))?.Value;
-			if (userIdFromClaim == null)
-				return Unauthorized();
-			var getUser = await _userIdentityService.UserManager.FindByIdAsync(userIdFromClaim);
+            /*
+                        var userIdFromClaim = User.Claims.FirstOrDefault(c => c.Type.Equals(ApplicationStaticValue.UserIdClaimType))?.Value;
+                        if (userIdFromClaim == null)
+                            return Unauthorized();*/
+            var getUser = await _userIdentityService.UserManager.FindByIdAsync(userId);
 			var changePasswordResult = await _userIdentityService.ChangePassword(getUser, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
 			if (changePasswordResult.isSuccess is false)
 			{
