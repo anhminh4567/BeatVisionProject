@@ -64,7 +64,10 @@ namespace Shared.ConfigurationBinding
     public class ExternalUrls
     {
         public string AzureBlobBaseUrl { get; set; }
-	}
+        public string FrontendBaseUrl { get; set; }
+        public string FrontendResetPasswordUrl { get; set; }
+
+    }
     public class AppConstraints
     {
         public string[] AllowAudioExtension { get; set; }
@@ -72,7 +75,9 @@ namespace Shared.ConfigurationBinding
         public string[] AllowLicenseExtension { get; set; }
 		public int LinkExpirationTimeMinute { get; set; }
         public int PagingTakeLimit { get; set; }
-	}
+        public int ExpireResetTokenMinute { get; set; }
+
+    }
     public class DefaultRelativePath
     {
         public string ContentName { get; set; }

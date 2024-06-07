@@ -25,7 +25,7 @@ namespace Services
     {
         public static IServiceCollection AddServicesLayer(this IServiceCollection services, AppsettingBinding appsettingBinding)
         {
-            services.AddRepositoryService();
+            services.AddRepositoryService( appsettingBinding);
 			services.AddFluentEmail(appsettingBinding.MailSettings.SenderEmail)
 				.AddSmtpSender(
 					host: appsettingBinding.MailSettings.Host,

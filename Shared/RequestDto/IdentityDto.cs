@@ -64,4 +64,15 @@ namespace Shared.RequestDto
         [Required]
         public string NewPassword { get; set; }
     }
+    public class ResetPasswordDto
+    {
+        [Required]
+        [DataType(DataType.EmailAddress)]
+        public string Email { get; set; }
+        [Required]
+        public string NewPassword { get; set; }
+        [Required]
+        public string ResetToken { get; set; }
+
+    }
 }

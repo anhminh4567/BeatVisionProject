@@ -53,4 +53,11 @@ namespace Shared.Poco
         public IList<OrderItemDto> OrderItems { get; set; }
         public string? ToMainPage {  get; set; }
     }
+    public class ForgetPassworEmailModel
+    {
+        public string? TemporalPassword { get; set; }
+        public string? PasswordResetToken { get; set; }
+        public string? CallbackUrl { get; set; }
+        public CustomIdentityUserDto UserIdentity { get; set; }
+    }
 }

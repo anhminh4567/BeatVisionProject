@@ -44,5 +44,8 @@ namespace Services.Interface
 		Task<Result<IList<CustomIdentityUserDto>>> GetUsersInRole(int roleId);
         Task<Result<PagingResponseDto<IList<CustomIdentityUserDto>>>> GetUsersPaging(int start, int amount);
         Task<Result> IsUserIdentityLegit(CustomIdentityUser user);
-	}
+
+        Task<Result<string>> GenerateForgotPasswordToken(string email);
+        Task<Result> ResetPassword(ResetPasswordDto resetPasswordDto);
+    }
 }

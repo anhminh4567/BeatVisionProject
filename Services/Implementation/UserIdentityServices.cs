@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
+using FluentEmail.Core;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Repository.Interface;
 using Services.Interface;
 using Shared;
@@ -20,6 +22,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
+using System.Security.Policy;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,6 +42,7 @@ namespace Services.Implementation
 		private readonly IMapper _mapper;
 		private const string ADMIN_ROLE_NAME = "admin";
 		private const string USER_ROLE_NAME = "User";
+		private const int RANDOM_PASSWORD_SIZE = 10;
 		public UserIdentityServices(UserManager<CustomIdentityUser> userManager, RoleManager<CustomIdentityRole> roleManager, SignInManager<CustomIdentityUser> signinManager, ISecurityTokenServices securityTokenServices, IUnitOfWork unitOfWork, AppsettingBinding settings,  IMyEmailService mailServices, IMapper mapper)
 		{
 			UserManager = userManager;
@@ -624,7 +628,79 @@ namespace Services.Implementation
 				Value = mappedResult
 			}); ;
 		}
-		public async Task<Result> IsUserIdentityLegit(CustomIdentityUser user)
+		// cach nay lam ez, nhung phien ben FE, can lam them 1 trang nua
+		public async Task<Result<string>> GenerateForgotPasswordToken(string email)
+		{
+			var error = new Error();
+			var getUserIdentity = await UserManager.FindByEmailAsync(email);
+			if (getUserIdentity is null)
+			{
+				error.ErrorMessage = "cannot find user";
+				return Result<string>.Fail(error);
+			}
+            var getPasswordResetTokenProvider = UserManager.Options.Tokens.PasswordResetTokenProvider;
+
+            var generateResetPasswordToken = await UserManager.GeneratePasswordResetTokenAsync(getUserIdentity);
+			if(string.IsNullOrEmpty( generateResetPasswordToken ))
+			{
+				error.ErrorMessage = "canot generate password reset email right now";
+				return Result<string>.Fail();
+			}
+			var getPath = _settings.MailTemplateAbsolutePath.FirstOrDefault(p => p.TemplateName == "ForgetPasswordEmail")?.TemplateAbsolutePath;
+			if(string.IsNullOrEmpty(getPath)) 
+			{
+				error.ErrorMessage = "canot find email template";
+				return Result<string>.Fail(error);
+			}
+			var callbackPathUrl = $"{_settings.ExternalUrls.FrontendResetPasswordUrl}";
+			UriBuilder builder = new UriBuilder(callbackPathUrl);
+            var queryParam = $"?Email={WebUtility.UrlEncode(getUserIdentity.Email)}&ResetToken={WebUtility.UrlEncode(generateResetPasswordToken)}";
+            builder.Query = queryParam;
+            callbackPathUrl = builder.ToString();
+            //TEST PURPOSE, TOBE DELETED
+            //TEST PURPOSE, TOBE DELETED
+
+            //var newTestPassword = "abcd";
+
+            //var queryParam = $"Email={WebUtility.UrlEncode(getUserIdentity.Email)}&ResetToken={WebUtility.UrlEncode(generateResetPasswordToken)}&NewPassword={WebUtility.UrlEncode(newTestPassword)}";
+            //builder.Query = queryParam ;
+            //callbackPathUrl = builder.ToString() ;
+
+            //TEST PURPOSE, TOBE DELETED
+            //TEST PURPOSE, TOBE DELETED
+            var forgetEmailModel = new ForgetPassworEmailModel()
+			{
+				PasswordResetToken = generateResetPasswordToken,
+				TemporalPassword = GenerateRandomString(RANDOM_PASSWORD_SIZE),
+				UserIdentity = _mapper.Map<CustomIdentityUserDto>(getUserIdentity),
+				CallbackUrl = callbackPathUrl,
+            };
+            var mailMeta = new EmailMetaData()
+            {
+                ToEmail = getUserIdentity.Email,
+                Subject = "forget password"
+            };
+            var sendResult = _mailServices.SendEmailWithTemplate<ForgetPassworEmailModel>(mailMeta,getPath,forgetEmailModel);
+			return Result<string>.Success(generateResetPasswordToken);
+		}
+		public async Task<Result> ResetPassword(ResetPasswordDto resetPasswordDto)
+		{
+            var error = new Error();
+            var getUserIdentity = await UserManager.FindByEmailAsync(resetPasswordDto.Email);
+            if (getUserIdentity is null)
+            {
+                error.ErrorMessage = "cannot find user";
+                return Result.Fail(error);
+            }
+			var resetResult = await UserManager.ResetPasswordAsync(getUserIdentity,resetPasswordDto.ResetToken,resetPasswordDto.NewPassword);
+			if(resetResult.Succeeded is false)
+			{
+				error.ErrorMessage = "fail to reset , try again later";
+				return Result.Fail(error);
+			}
+			return Result.Success();
+		}
+        public async Task<Result> IsUserIdentityLegit(CustomIdentityUser user)
 		{
 			var error = new Error();
 			if ( (await UserManager.IsEmailConfirmedAsync(user)) is false)
@@ -639,6 +715,20 @@ namespace Services.Implementation
 			}
 			return Result.Success();
 		}
+		private string GenerateRandomString(int size)
+		{
+			string randomAllowString = "1234567890qwertyuiopasdfghjklzxcvbnm";
+			var randomAllowStringSize = randomAllowString.Length;
+			var random = new Random();
+			StringBuilder stringBuilder = new StringBuilder();
+			for (int i  = 0; i < size; i++)
+			{
+				var getPosition = random.Next(randomAllowStringSize);
+				stringBuilder.Append(randomAllowString[getPosition]);
+			}
+			return stringBuilder.ToString();
+		}
+		
 	}
 
 }

@@ -16,12 +16,13 @@ using Microsoft.AspNetCore.Identity;
 using Shared.Models;
 using System.Reflection;
 using Shared.MapperProfiles;
+using Services.Configurations;
 
 namespace Repository
 {
     public static class RegisterDependency
     {
-        public static IServiceCollection AddRepositoryService(this IServiceCollection services)
+        public static IServiceCollection AddRepositoryService(this IServiceCollection services, AppsettingBinding appsettingBinding)
         {
             services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
             {
@@ -34,9 +35,16 @@ namespace Repository
                 .AddRoleManager<RoleManager<CustomIdentityRole>>()
                 .AddSignInManager<SignInManager<CustomIdentityUser>>()
                 .AddUserManager<UserManager<CustomIdentityUser>>()
-                .AddDefaultTokenProviders();
-
-            
+                .AddDefaultTokenProviders()
+                .AddTokenProvider("MyResetPasswordTokenProvider", typeof(ResetPasswordTokenProvider<CustomIdentityUser>)) ;
+            //services.Configure<IdentityOptions>(config => 
+            //{
+            //    config.Tokens.PasswordResetTokenProvider = "MyResetPasswordTokenProvider";
+            //});
+            services.AddTransient<ResetPasswordTokenProvider<CustomIdentityUser>>();
+            services.Configure<ResetPasswordTokenProviderOptions>(config => {
+                config.TokenLifespan = TimeSpan.FromMinutes(appsettingBinding.AppConstraints.ExpireResetTokenMinute);
+            });
             
             services.AddScoped<ICustomIdentityUserRepository, CustomIdentityUserRepository>();
             services.AddScoped<ICustomIdentityUserTokenRepository, CustomIdentityUserTokenRepository>();
@@ -81,7 +89,7 @@ namespace Repository
                 var tokenOpt = options.Tokens;
                 tokenOpt.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
                 tokenOpt.ChangeEmailTokenProvider = TokenOptions.DefaultEmailProvider;
-                tokenOpt.PasswordResetTokenProvider = TokenOptions.DefaultAuthenticatorProvider;
+                tokenOpt.PasswordResetTokenProvider = "MyResetPasswordTokenProvider";
             });
             services.AddAutoMapper(Assembly.GetAssembly(typeof(Profiles)));
             return services;

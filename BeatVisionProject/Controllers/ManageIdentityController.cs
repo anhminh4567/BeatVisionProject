@@ -261,6 +261,23 @@ namespace BeatVisionProject.Controllers
 			}
 			return Ok(result.Value);
 		}
-		
+		[HttpGet("reset-password")]
+		public async Task<ActionResult> ResetPassword([FromQuery]ResetPasswordDto resetPasswordDto)
+		{
+			var confirmResetResult = await _userIdentityService.ResetPassword(resetPasswordDto);
+			if (confirmResetResult.isSuccess is false)
+				return StatusCode(confirmResetResult.Error.StatusCode, confirmResetResult.Error);
+			return Ok("reseted");
+		}
+		[HttpGet("forget-password")]
+		public async Task<ActionResult> ForgetPassword([FromQuery]string email)
+		{
+			var trySendMailResetResult = await _userIdentityService.GenerateForgotPasswordToken(email);
+			if(trySendMailResetResult .isSuccess is false)
+			{
+				return StatusCode(trySendMailResetResult.Error.StatusCode, trySendMailResetResult.Error);
+			}
+			return Ok("sended");
+		}
 	}
 }
