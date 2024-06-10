@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Services.Implementation;
+using Shared;
 using Shared.ConfigurationBinding;
 using Shared.Helper;
 using Shared.RequestDto;
@@ -48,7 +50,8 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpPut("profile-image/{id}")]
-		public async Task<ActionResult> UpdateProfileImage([FromRoute] int id,[FromForm]UpdateProfileImageDto updateProfileImageDto)
+        //[Authorize(policy: ApplicationStaticValue.USER_POLICY_NAME)]
+        public async Task<ActionResult> UpdateProfileImage([FromRoute] int id,[FromForm]UpdateProfileImageDto updateProfileImageDto)
 		{
 			var getFile = updateProfileImageDto.imageFile;
 			//var getProfile = await _appUserManager.GetUserProfile(id);
@@ -73,7 +76,8 @@ namespace BeatVisionProject.Controllers
 		}
 		
 		[HttpGet("subscribe")]
-		public async Task<ActionResult> Subscribe([FromQuery] int userId)
+        //[Authorize(policy: ApplicationStaticValue.USER_POLICY_NAME)]
+        public async Task<ActionResult> Subscribe([FromQuery] int userId)
 		{
 			var subscribeResult = await _appUserManager.Subscribe(userId);
 			if (subscribeResult.isSuccess is false)

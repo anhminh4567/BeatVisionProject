@@ -56,6 +56,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(loginResult.Value);
 		}
 		[HttpPost("register-admin")]
+		[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
 		public async Task<ActionResult> RegisterAdmin(RegisterDto registerDto)
 		{
 			var registerResult = await _userIdentityService.CreateAdmin(registerDto);
@@ -66,7 +67,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(registerResult.Value);
 		}
 		[HttpPost("login-admin")]
-		public async Task<IActionResult> LoginAdmin(LoginDto loginDto, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> LoginAdmin(LoginDto loginDto, CancellationToken cancellationToken = default)
 		{
 			var loginResult = await _userIdentityService.LoginAdmin(loginDto, cancellationToken);
 			if (loginResult.isSuccess is false)
@@ -76,7 +77,8 @@ namespace BeatVisionProject.Controllers
 			return Ok(loginResult.Value);
 		}
 		[HttpDelete("delete-admin")]
-		public async Task<ActionResult> DeleteAdmin([FromQuery] int currentAdminId, [FromQuery] int tobeDeleteAdminId)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult> DeleteAdmin([FromQuery] int currentAdminId, [FromQuery] int tobeDeleteAdminId)
 		{
 			if (currentAdminId < 0 || tobeDeleteAdminId < 0)
 				return BadRequest();

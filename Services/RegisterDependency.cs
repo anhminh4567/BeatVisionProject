@@ -115,7 +115,18 @@ namespace Services
 					}
 				};
             });
-            
+            services.AddAuthorization(config =>
+            {
+                config.AddPolicy(ApplicationStaticValue.ADMIN_POLICY_NAME, policy =>
+                {
+                    policy.RequireRole(ApplicationStaticValue.ADMIN_ROLE);
+                });
+                config.AddPolicy(ApplicationStaticValue.USER_POLICY_NAME, policy =>
+                {
+                    policy.RequireRole(ApplicationStaticValue.USER_ROLE);
+                });
+
+            });
 			services.AddStackExchangeRedisCache(opt => 
             {
                 var connectionString = appsettingBinding.ConnectionStrings.CacheConnectionString; 

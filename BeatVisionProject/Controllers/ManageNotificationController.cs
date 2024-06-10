@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services.Implementation;
+using Shared;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.RequestDto;
@@ -44,7 +46,8 @@ namespace BeatVisionProject.Controllers
 		//	return Ok();
 		//}
 		[HttpPost("admin-create-notification")]
-		public async Task<ActionResult> AdminCreateNotification([FromForm] AdminCreateMessageDto adminCreateMessageDto)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult> AdminCreateNotification([FromForm] AdminCreateMessageDto adminCreateMessageDto)
 		{
 			if(adminCreateMessageDto.Type == NotificationType.SINGLE && adminCreateMessageDto.UserId is null )
 				return BadRequest();

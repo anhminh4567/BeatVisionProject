@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Repository.Interface;
@@ -94,8 +95,9 @@ namespace BeatVisionProject.Controllers
 			return Ok(getRelatedTrack);
 		}
 		[HttpPost]
-		//[Consumes("multipart/form-data")]
-		public async Task<ActionResult> CreateTrack([FromForm] CreateTrackDto createTrackDto, CancellationToken cancellationToken = default)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Consumes("multipart/form-data")]
+        public async Task<ActionResult> CreateTrack([FromForm] CreateTrackDto createTrackDto, CancellationToken cancellationToken = default)
 		{
 			var uploadResult = await _trackManager.UploadTrack(createTrackDto, cancellationToken);
 			if (uploadResult.isSuccess is false)
@@ -105,7 +107,8 @@ namespace BeatVisionProject.Controllers
 			return Ok("upload success");
 		}
 		[HttpPost("publish-track")]
-		public async Task<ActionResult> PublishTrack([FromForm] PublishTrackDto publishTrackDto)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult> PublishTrack([FromForm] PublishTrackDto publishTrackDto)
 		{
 			//var publishDateUtc = DateTime.SpecifyKind(publishTrackDto.PublishDate, DateTimeKind.Utc);
 			//var publishDateLocal = TimeZoneInfo.ConvertTimeFromUtc(publishDateUtc, TimeZoneInfo.Local);
@@ -158,7 +161,8 @@ namespace BeatVisionProject.Controllers
 			return File(downloadResult.Value.Stream,downloadResult.Value.ContentType);
 		}
 		[HttpPost("add-license")]
-		public async Task<ActionResult> AddTrackLicense([FromForm] CreateTrackLicenseDto createTrackLicenseDto, CancellationToken cancellationToken = default)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult> AddTrackLicense([FromForm] CreateTrackLicenseDto createTrackLicenseDto, CancellationToken cancellationToken = default)
 		{
 			var uploadedLicenseFile = createTrackLicenseDto.LicensePdfFile;
 			using Stream fileStream = uploadedLicenseFile.OpenReadStream();
@@ -170,7 +174,8 @@ namespace BeatVisionProject.Controllers
 			return Ok(createresult.Value);
 		}
 		[HttpDelete("delete-license/{licenseId}")]
-		public async Task<ActionResult> DeleteTrackLicense(int licenseId)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult> DeleteTrackLicense(int licenseId)
 		{
 			if (licenseId == null || licenseId <= 0)
 			{
@@ -221,7 +226,8 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpPut]
-		public async Task<ActionResult> UpdateTrack([FromForm] UpdateTrackDto updateTrackDto)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult> UpdateTrack([FromForm] UpdateTrackDto updateTrackDto)
 		{
 			if(updateTrackDto.TrackId <= 0 )
 				return BadRequest();

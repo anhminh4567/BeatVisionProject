@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Services.Implementation;
+using Shared;
 using Shared.ConfigurationBinding;
 using Shared.Models;
 using Shared.RequestDto;
@@ -23,10 +25,12 @@ namespace BeatVisionProject.Controllers
 		[HttpGet]
 		public async Task<ActionResult<IList<TagDto>>> GetAll()
 		{
+			var isIt = User.IsInRole(ApplicationStaticValue.ADMIN_ROLE);
 			return Ok(await _tagManager.GetAll());
 		}
 		[HttpPost]
-		public async Task<ActionResult<TagDto?>> CreateTag([FromForm]CreateTagDto createTagDto)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult<TagDto?>> CreateTag([FromForm]CreateTagDto createTagDto)
 		{
 			var createResult = await _tagManager.Create(createTagDto);
 			if(createResult == null)
@@ -36,7 +40,8 @@ namespace BeatVisionProject.Controllers
 			return Ok(createResult);
 		}
 		[HttpDelete("{id}")]
-		public async Task<ActionResult> DeleteTag([FromRoute]int id)
+        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        public async Task<ActionResult> DeleteTag([FromRoute]int id)
 		{
 			var deleteResult = await _tagManager.Remove(id);
 			return Ok(deleteResult);

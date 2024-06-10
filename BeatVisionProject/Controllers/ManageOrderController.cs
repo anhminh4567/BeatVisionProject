@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using Net.payOS.Types;
 using Services.Implementation;
+using Shared;
 using Shared.ConfigurationBinding;
 using Shared.Enums;
 using Shared.RequestDto;
@@ -82,7 +84,8 @@ namespace BeatVisionProject.Controllers
 			return Ok(getResult.Value);
 		}
 		[HttpPost("checkout")]
-		public async Task<ActionResult> Checkout([FromForm] int userProfileId)
+        [Authorize(policy: ApplicationStaticValue.USER_POLICY_NAME)]
+        public async Task<ActionResult> Checkout([FromForm] int userProfileId)
 		{
 			if (userProfileId <= 0)
 				return BadRequest();
