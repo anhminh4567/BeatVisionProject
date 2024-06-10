@@ -196,15 +196,15 @@ namespace Services.Implementation
 		public async Task<Result<Order>> OnReturnUrl(PayosReturnData returnData, Order order)
 		{
 			var error = new Error();
-			if(order.Status == OrderStatus.CANCELLED || order.Status == OrderStatus.PAID) // la khi webhook no tra ve truoc khi ve return url
-			{
-				return Result<Order>.Success(order);
-			}
-			order.Status = OrderStatus.PROCESSING;
-			order.PaidDate = DateTime.Now;
-			order.PriceRemain = 0;
-			await _unitOfWork.Repositories.orderRepository.Update(order);
-			await _unitOfWork.SaveChangesAsync();
+			//if(order.Status == OrderStatus.CANCELLED || order.Status == OrderStatus.PAID) // la khi webhook no tra ve truoc khi ve return url
+			//{
+			//	return Result<Order>.Success(order);
+			//}
+			//order.Status = OrderStatus.PROCESSING;
+			//order.PaidDate = DateTime.Now;
+			//order.PriceRemain = 0;
+			//await _unitOfWork.Repositories.orderRepository.Update(order);
+			//await _unitOfWork.SaveChangesAsync();
 			//await CheckPaymentSuccess(order.OrderCode.Value);
 			return Result<Order>.Success(order);
 		}

@@ -55,7 +55,7 @@ namespace Repository
             //    .AddJsonFile("appsettings.json", false, true)
             //    .Build();
             //var getConnectionString = config.GetConnectionString("DefaultConnectionString");
-            optionsBuilder.UseSqlServer("server=(local);Uid=sa;Pwd=12345;Database=BeatVision;TrustServerCertificate=true");
+            //optionsBuilder.UseSqlServer("server=(local);Uid=sa;Pwd=12345;Database=BeatVision;TrustServerCertificate=true");
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -215,6 +215,9 @@ namespace Repository
             {
                 
             });
+            //builder.Entity<CustomIdentityRole>().HasData(
+            //    new CustomIdentityRole { Name = "User" , Description =  }
+            //    );
         }
 
     }

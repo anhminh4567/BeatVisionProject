@@ -153,6 +153,8 @@ namespace Services.Implementation
 		public async Task<UserProfileDto?> GetUserProfile(int id)
 		{
 			var getResult = await _unitOfWork.Repositories.userProfileRepository.GetById(id);
+			if (getResult is null)
+				return null;
 			var mappedResult = _mapper.Map<UserProfileDto>(getResult);
 			MapCorrectProfileUrl(mappedResult);
 			return mappedResult;
@@ -160,7 +162,9 @@ namespace Services.Implementation
 		public async Task<UserProfileDto?> GetUserProfileByIdentity(int identityId)
 		{
 			var getResult = (await _unitOfWork.Repositories.userProfileRepository.GetByCondition(u => u.IdentityId == identityId)).FirstOrDefault();
-			var mappedResult = _mapper.Map<UserProfileDto>(getResult);
+            if (getResult is null)
+                return null;
+            var mappedResult = _mapper.Map<UserProfileDto>(getResult);
 			MapCorrectProfileUrl(mappedResult);
 			return mappedResult;
 		}

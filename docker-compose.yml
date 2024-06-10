@@ -1,0 +1,44 @@
+version: '3.4'
+name: beatvision_backend_dockercompose
+networks:
+  myapp_network:
+
+volumes:
+  beatvision_db_volume:
+
+services:
+  mydb:
+    image: "mcr.microsoft.com/mssql/server:2019-latest"
+    container_name: "beatvision_db"
+    environment:
+      - "ACCEPT_EULA=Y" 
+      - "MSSQL_SA_PASSWORD=Supermarcy@2003" 
+    volumes:
+      - beatvision_db_volume:/var/opt/mssql
+    ports:
+      - "7777:1433"
+    networks:
+      - myapp_network
+  beatvisionproject:
+    image: minhtran4567/beatvisionproject:latest
+    depends_on:
+      - mydb
+    container_name: "beatvision_api"
+    environment:
+      - "MYAPP_UID=SA"
+      - "MYAPP_PWD=Supermarcy@2003"
+      - "MYAPP_DATABASE=BeatVision"
+      - "MYAPP_SERVERNAME=beatvision_db"
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:      
+      - "5234:80"
+    # volumes:
+    #   - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+    #   - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    # image: ${DOCKER_REGISTRY-}beatvisionproject
+    build:
+      context: .
+      dockerfile: BeatVisionProject/Dockerfile
+    networks:
+      - myapp_network

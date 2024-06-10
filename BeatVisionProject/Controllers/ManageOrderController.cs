@@ -118,7 +118,7 @@ namespace BeatVisionProject.Controllers
 			var host = "localhost:4123";
             /*var host = HttpContext.Request.Host;*/
             var fullUrl = $"http://{host}/checkout/payment/failed";
-			return Redirect(fullUrl);
+			return Redirect(ReturnCorrectUrl(true));
 		}
 		[HttpGet("success-order-hook")]
 		public async Task<ActionResult> SuccessOrder([FromQuery] PayosReturnData payosReturnData)
@@ -131,7 +131,7 @@ namespace BeatVisionProject.Controllers
             var host = "localhost:4123";
             /*var host = HttpContext.Request.Host;*/
 			var fullUrl = $"http://{host}/checkout/payment/success";
-			return Redirect(fullUrl);
+			return Redirect(ReturnCorrectUrl(false));
 		}
 		[HttpGet("send-billing-test")]
 		public async Task<ActionResult> SuccessOrder([FromQuery] int orderId, [FromQuery] int userProfileId)
@@ -151,6 +151,20 @@ namespace BeatVisionProject.Controllers
 			if(getResult.isSuccess is false)
 				return StatusCode(getResult.Error.StatusCode,getResult.Error);
 			return Ok(getResult.Value);
+		}
+		private string ReturnCorrectUrl(bool isCancelurl )
+		{
+			var baseUrl = _appsettings.ExternalUrls.FrontendBaseUrl;
+			if (isCancelurl)
+			{
+                var fullUrl = $"{baseUrl}/checkout/payment/failed";
+				return fullUrl;
+			}
+			else
+			{
+                var fullUrl = $"{baseUrl}/checkout/payment/success";
+                return fullUrl;
+            }
 		}
 	}
 }

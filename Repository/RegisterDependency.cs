@@ -28,7 +28,48 @@ namespace Repository
             {
                 var getSettings = serviceProvider.GetRequiredService<AppsettingBinding>();
                 var getConnectionString = getSettings.ConnectionStrings.DefaultConnectionString;
-                options.UseSqlServer(getConnectionString);
+                string serverName = "localhost,1433";
+                string uid = "SA";
+                string pwd = "Supermarcy@2003";
+                string database = "BeatVision";
+                var result = bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var getEnvironmentIsRunningInDockerContainer);
+                var dockerConnectionString = $"server={serverName};uid={uid};pwd={pwd};Database={database};TrustServerCertificate=true;";
+
+                Console.WriteLine(getEnvironmentIsRunningInDockerContainer);
+                if (getEnvironmentIsRunningInDockerContainer != null && getEnvironmentIsRunningInDockerContainer == true)
+                {
+                    try
+                    {
+                        var env_servername = Environment.GetEnvironmentVariable("MYAPP_SERVERNAME");
+                        var env_uid = Environment.GetEnvironmentVariable("MYAPP_UID");
+                        var env_pwd = Environment.GetEnvironmentVariable("MYAPP_PWD");
+                        var env_database = Environment.GetEnvironmentVariable("MYAPP_DATABASE");
+                        if (string.IsNullOrEmpty(env_servername) ||
+                            string.IsNullOrEmpty(env_uid) ||
+                            string.IsNullOrEmpty(env_pwd) ||
+                            string.IsNullOrEmpty(env_database))
+                        {
+                            throw new ArgumentException("empty environment variable, take default variable");
+                        }
+                        serverName = env_servername;
+                        uid = env_uid;
+                        pwd = env_pwd;
+                        database = env_database;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    var dockerConnectionStringReal = $"server={serverName};uid={uid};pwd={pwd};Database={database};TrustServerCertificate=true;";
+                    Console.WriteLine("yes run in docker");
+                    options.UseSqlServer(dockerConnectionStringReal);
+                }
+                else
+                {
+                    Console.WriteLine("run in normal environment");
+                    options.UseSqlServer(getConnectionString);
+                }
+                //options.UseSqlServer(getConnectionString);
             });
             services.AddIdentity<CustomIdentityUser, CustomIdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()

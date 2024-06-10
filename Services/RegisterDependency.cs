@@ -54,7 +54,8 @@ namespace Services
             services.AddScoped<LicenseFileService>();
             services.AddScoped<PayosService>();
             services.AddScoped<OrderManager>();
-			services.AddAuthentication(opt => 
+            //services.AddAntiforgery(options => options.SuppressXFrameOptionsHeader = true);
+            services.AddAuthentication(opt => 
             {
                 opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 opt.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -64,9 +65,9 @@ namespace Services
                 var jwtSection = appsettingBinding.JwtSection;
                 config.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    ValidateIssuer = true,
+                    ValidateIssuer = false,
                     ValidateIssuerSigningKey = true,
-                    ValidateAudience = true,
+                    ValidateAudience = false,
                     ValidateLifetime = true,
                     ValidIssuers = jwtSection.Issuers,
                     ValidAudiences = jwtSection.Audiences,
