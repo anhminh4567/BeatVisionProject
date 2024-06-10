@@ -42,7 +42,7 @@ namespace Shared.RequestDto
 		public IFormFile? bannderFile { get; set; }
 		[Required]
 		[MinLength(1)]
-		[RegularExpression(@"^[a-zA-Z0-9\s.,]*$")]
+		//[RegularExpression(@"^[a-zA-Z0-9\s.,]*$")]
 		public string TrackName { get; set; }
 		[Required]
 		public IList<int> TagsId { get; set; } = new List<int>();

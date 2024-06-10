@@ -136,7 +136,7 @@ namespace Services.Implementation
 				ContentType = ApplicationStaticValue.ContentTypeMp3,
 				DirectoryType = DIRECTORY_TYPE,
 				IsPublicAccess = false,
-				SizeMb = analyseMp3File.SizeMb,
+				SizeMb = 0,//analyseMp3File.SizeMb,
 				FileExtension = "mp3",
 				GeneratedName = RANDOM_GENERATED_NAME,
 				OriginalFileName = formFile.FileName,

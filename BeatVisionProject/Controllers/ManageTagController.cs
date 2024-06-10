@@ -29,7 +29,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(await _tagManager.GetAll());
 		}
 		[HttpPost]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         public async Task<ActionResult<TagDto?>> CreateTag([FromForm]CreateTagDto createTagDto)
 		{
 			var createResult = await _tagManager.Create(createTagDto);
@@ -40,7 +40,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(createResult);
 		}
 		[HttpDelete("{id}")]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         public async Task<ActionResult> DeleteTag([FromRoute]int id)
 		{
 			var deleteResult = await _tagManager.Remove(id);

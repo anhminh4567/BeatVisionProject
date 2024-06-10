@@ -6,7 +6,8 @@ EXPOSE 80
 EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
-ARG BUILD_CONFIGURATION=Debug
+#ARG BUILD_CONFIGURATION=Debug
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["BeatVisionProject/BeatVisionProject.csproj", "BeatVisionProject/"]
 COPY ["Services/Services.csproj", "Services/"]
@@ -24,4 +25,5 @@ RUN dotnet publish "./BeatVisionProject.csproj" -c $BUILD_CONFIGURATION -o /app/
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY BeatVisionProject/wwwroot /app/wwwroot
 ENTRYPOINT ["dotnet", "BeatVisionProject.dll"]

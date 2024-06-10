@@ -706,12 +706,12 @@ namespace Services.Implementation
 			if ( (await UserManager.IsEmailConfirmedAsync(user)) is false)
 			{
 				error.ErrorMessage = "email not confirmed";
-				return Result.Fail();
+				return Result.Fail(error);
 			}
 			if( (await UserManager.IsLockedOutAsync(user)) is true)
 			{
 				error.ErrorMessage = "account is lock out";
-				return Result.Fail();
+				return Result.Fail(error);
 			}
 			return Result.Success();
 		}

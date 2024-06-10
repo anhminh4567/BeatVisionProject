@@ -95,7 +95,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(getRelatedTrack);
 		}
 		[HttpPost]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         //[Consumes("multipart/form-data")]
         public async Task<ActionResult> CreateTrack([FromForm] CreateTrackDto createTrackDto, CancellationToken cancellationToken = default)
 		{
@@ -107,7 +107,7 @@ namespace BeatVisionProject.Controllers
 			return Ok("upload success");
 		}
 		[HttpPost("publish-track")]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         public async Task<ActionResult> PublishTrack([FromForm] PublishTrackDto publishTrackDto)
 		{
 			//var publishDateUtc = DateTime.SpecifyKind(publishTrackDto.PublishDate, DateTimeKind.Utc);
@@ -161,7 +161,7 @@ namespace BeatVisionProject.Controllers
 			return File(downloadResult.Value.Stream,downloadResult.Value.ContentType);
 		}
 		[HttpPost("add-license")]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         public async Task<ActionResult> AddTrackLicense([FromForm] CreateTrackLicenseDto createTrackLicenseDto, CancellationToken cancellationToken = default)
 		{
 			var uploadedLicenseFile = createTrackLicenseDto.LicensePdfFile;
@@ -174,7 +174,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(createresult.Value);
 		}
 		[HttpDelete("delete-license/{licenseId}")]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         public async Task<ActionResult> DeleteTrackLicense(int licenseId)
 		{
 			if (licenseId == null || licenseId <= 0)
@@ -226,7 +226,7 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpPut]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         public async Task<ActionResult> UpdateTrack([FromForm] UpdateTrackDto updateTrackDto)
 		{
 			if(updateTrackDto.TrackId <= 0 )

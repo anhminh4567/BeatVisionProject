@@ -107,6 +107,8 @@ namespace BeatVisionProject.Controllers
 			var result = await _orderManager.OnWebhookPaymentReturn(webhookType);
 			if (result.isSuccess is false)
 				return StatusCode(result.Error.StatusCode, result.Error);
+			if (result.Value is null)
+				return Ok("this is web hook test, dont save");
 			var sendMailResult = await _orderManager.OnFinishOrder(result.Value);
 			if (sendMailResult.isSuccess is false)
 				return StatusCode(sendMailResult.Error.StatusCode, sendMailResult.Error);

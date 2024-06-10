@@ -115,6 +115,7 @@ internal class Program
                 config.AllowAnyHeader();
                 config.AllowAnyOrigin();
                 config.AllowAnyOrigin();
+                config.AllowAnyMethod();
             });
         });
         builder.Services.AddServicesLayer(appsettingsBinding);

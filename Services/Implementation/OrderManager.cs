@@ -281,6 +281,10 @@ namespace Services.Implementation
 		{
 			var error = new Error();
 			var orderCode = webhookType.data.orderCode;
+			if(webhookType.data.accountNumber == "12345678")
+			{
+				return Result<Order>.Success(null);
+			}
 			var getOrder = await GetOrderByOrderCode(orderCode);
 			if(getOrder.Status == OrderStatus.PAID) 
 			{

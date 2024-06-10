@@ -46,7 +46,7 @@ namespace BeatVisionProject.Controllers
 		//	return Ok();
 		//}
 		[HttpPost("admin-create-notification")]
-        [Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+        //[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
         public async Task<ActionResult> AdminCreateNotification([FromForm] AdminCreateMessageDto adminCreateMessageDto)
 		{
 			if(adminCreateMessageDto.Type == NotificationType.SINGLE && adminCreateMessageDto.UserId is null )

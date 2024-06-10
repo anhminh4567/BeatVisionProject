@@ -32,14 +32,15 @@ namespace Services.Implementation
         private readonly AppsettingBinding _appsettings;
 		private readonly IUnitOfWork _unitOfWork;
 		private readonly IMapper _mapper;
-		private const string CURRENT_WEBHOOK = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/receive-webhook";
-		private const string CURRENT_RETURN_URL = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/success-order-hook";
-		private const string CURRENT_CANCEL_URL = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/cancel-order-hook";
-		//private const string CURRENT_WEBHOOK = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
-		//private const string CURRENT_RETURN_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/success-order-hook";
-		//private const string CURRENT_CANCEL_URL = "https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/cancel-order-hook";
+		//private const string CURRENT_WEBHOOK = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/receive-webhook";
+		//private const string CURRENT_RETURN_URL = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/success-order-hook";
+		//private const string CURRENT_CANCEL_URL = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/cancel-order-hook";
+		private const string CURRENT_WEBHOOK = "https://api.beatvision.store/api/ManageOrder/receive-webhook";//"https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
+		private const string CURRENT_RETURN_URL = "https://api.beatvision.store/api/ManageOrder/success-order-hook";//"https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/success-order-hook";
+		private const string CURRENT_CANCEL_URL = "https://api.beatvision.store/api/ManageOrder/cancel-order-hook"; //"https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/cancel-order-hook";
 
-		public PayosService(AppsettingBinding appsettings, IUnitOfWork unitOfWork, IMapper mapper)
+
+        public PayosService(AppsettingBinding appsettings, IUnitOfWork unitOfWork, IMapper mapper)
 		{
 			_appsettings = appsettings;
 			_unitOfWork = unitOfWork;
