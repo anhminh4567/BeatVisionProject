@@ -56,7 +56,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(loginResult.Value);
 		}
 		[HttpPost("register-admin")]
-		[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
+		//[Authorize(policy: ApplicationStaticValue.ADMIN_POLICY_NAME)]
 		public async Task<ActionResult> RegisterAdmin(RegisterDto registerDto)
 		{
 			var registerResult = await _userIdentityService.CreateAdmin(registerDto);
@@ -137,13 +137,19 @@ namespace BeatVisionProject.Controllers
 			}
 			var email = info.Principal.FindFirstValue(ClaimTypes.Email);
 			var result = await _userIdentityService.SigninManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
-			if (result.Succeeded)
+
+
+            var fullpath = _appsettings.ExternalUrls.FrontendBaseUrl + "/auth/external-login/";
+
+
+            if (result.Succeeded)
 			{
 				var getUserByEmail = await _userIdentityService.UserManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
 				var tokenResult = await _userIdentityService.GenerateTokensForUsers(getUserByEmail);
 				if (tokenResult.isSuccess is false)
 					return StatusCode(tokenResult.Error.StatusCode, tokenResult.Error);
-				return Ok(tokenResult.Value);
+				fullpath = fullpath + tokenResult.Value.AccessToken;
+				return Redirect(fullpath);
 			}
 			else
 			{
@@ -167,15 +173,19 @@ namespace BeatVisionProject.Controllers
 					ProfileBlobUrl = googleProfileImage,
 				};
 				var createResult = await _userIdentityService.CreateUser(newUser, newUserProfile);
-				if(createResult.isSuccess is false)
+				var createLogin = await _userIdentityService.UserManager.AddLoginAsync(newUser, info);
+
+                if (createResult.isSuccess is false)
 				{
 					return StatusCode(createResult.Error.StatusCode, createResult.Error);
 				}
-				return Ok(createResult.Value);
+				fullpath = fullpath + createResult.Value.AccessToken;
+				return Redirect(fullpath);
 			}
 		}
 		[HttpPost("change-password")]
-		public async Task<IActionResult> ChangePassword([FromForm] ChangePasswordDto changePasswordDto, [FromQuery] string userId)
+        [Authorize(policy: ApplicationStaticValue.USER_POLICY_NAME)]
+        public async Task<IActionResult> ChangePassword([FromForm] ChangePasswordDto changePasswordDto, [FromQuery] string userId)
 		{
             /*
                         var userIdFromClaim = User.Claims.FirstOrDefault(c => c.Type.Equals(ApplicationStaticValue.UserIdClaimType))?.Value;

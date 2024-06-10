@@ -39,6 +39,7 @@ namespace BeatVisionProject.Controllers
 			return Ok(getProfile);
 		}
 		[HttpPut("{profileId}")]
+		[Authorize(policy: ApplicationStaticValue.USER_POLICY_NAME)]
 		public async Task<ActionResult> UpdateUserProfile([FromRoute] int profileId, [FromBody] UpdateUserProfileDto updateUserProfileDto)
 		{
 			var updateResult = await _appUserManager.UpdateProfile(profileId, updateUserProfileDto);
@@ -50,6 +51,7 @@ namespace BeatVisionProject.Controllers
 		}
 
 		[HttpPut("profile-image/{id}")]
+        [Authorize(policy: ApplicationStaticValue.USER_POLICY_NAME)]
         //[Authorize(policy: ApplicationStaticValue.USER_POLICY_NAME)]
         public async Task<ActionResult> UpdateProfileImage([FromRoute] int id,[FromForm]UpdateProfileImageDto updateProfileImageDto)
 		{
