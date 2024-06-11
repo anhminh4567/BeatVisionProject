@@ -119,11 +119,11 @@ namespace Services
             {
                 config.AddPolicy(ApplicationStaticValue.ADMIN_POLICY_NAME, policy =>
                 {
-                    policy.RequireRole(ApplicationStaticValue.ADMIN_ROLE);
+                    policy.RequireRole(ApplicationStaticValue.ADMIN_ROLE, ApplicationStaticValue.ADMIN_ROLE.ToUpper(), ApplicationStaticValue.ADMIN_ROLE.ToLower());
                 });
                 config.AddPolicy(ApplicationStaticValue.USER_POLICY_NAME, policy =>
                 {
-                    policy.RequireRole(ApplicationStaticValue.USER_ROLE);
+                    policy.RequireRole(ApplicationStaticValue.USER_ROLE, ApplicationStaticValue.USER_ROLE.ToUpper(), ApplicationStaticValue.USER_ROLE.ToLower());
                 });
 
             });
