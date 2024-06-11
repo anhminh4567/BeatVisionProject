@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
 using Repository;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 internal class Program
 {
     private static void Main(string[] args)
@@ -119,6 +121,15 @@ internal class Program
             });
         });
         builder.Services.AddServicesLayer(appsettingsBinding);
+        var vietTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        //builder.Services.Configure<RequestLocalizationOptions>(opts =>
+        //{
+        //    var supportedCultures = new List<CultureInfo> { new CultureInfo("en-US") };
+        //    opts.DefaultRequestCulture = new RequestCulture("en-US");
+        //    opts.SupportedCultures = supportedCultures;
+        //    opts.SupportedUICultures = supportedCultures;
+        //    opts.DefaultRequestCulture.Culture.DateTimeFormat.zone = vietTimeZone;
+        //});
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.All;

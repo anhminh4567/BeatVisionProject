@@ -120,9 +120,10 @@ namespace Services.Implementation
 				var getTracksFromItems = await GetTrackItems(getUserCartItem.ToList());
 				IList<OrderItem> orderItems = new List<OrderItem>();
 				int totalCartItemPrice = CountTotalPriceFromTrackItem(getTracksFromItems);
-				Order order = new Order()
+				//UtcTimeToLocalTime();
+                Order order = new Order()
 				{
-					CreateDate = DateTime.Now,
+					CreateDate = DateTime.Now,//DateTimeHelper.UtcTimeToLocalTime(DateTime.Now.ToString()),
 					Price = totalCartItemPrice,
 					OriginalPrice = totalCartItemPrice,
 					PriceRemain = totalCartItemPrice,

@@ -36,8 +36,8 @@ namespace Services.Implementation
 		//private const string CURRENT_RETURN_URL = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/success-order-hook";
 		//private const string CURRENT_CANCEL_URL = "https://sunbeam-fluent-eagle.ngrok-free.app/api/ManageOrder/cancel-order-hook";
 		private const string CURRENT_WEBHOOK = "https://api.beatvision.store/api/ManageOrder/receive-webhook";//"https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/receive-webhook";
-		private const string CURRENT_RETURN_URL = "https://api.beatvision.store/api/ManageOrder/success-order-hook";//"https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/success-order-hook";
-		private const string CURRENT_CANCEL_URL = "https://api.beatvision.store/api/ManageOrder/cancel-order-hook"; //"https://modest-ram-mentally.ngrok-free.app/api/ManageOrder/cancel-order-hook";
+		private const string CURRENT_RETURN_URL = "https://api.beatvision.store/api/ManageOrder/success-order-hook";//"https://api.beatvision.store/api/ManageOrder/success-order-hook";//
+        private const string CURRENT_CANCEL_URL = "https://api.beatvision.store/api/ManageOrder/cancel-order-hook";//"https://api.beatvision.store/api/ManageOrder/cancel-order-hook"; //
 
 
         public PayosService(AppsettingBinding appsettings, IUnitOfWork unitOfWork, IMapper mapper)
@@ -61,6 +61,7 @@ namespace Services.Implementation
 			try
 			{
 				CreatePaymentResult createPayment = await payOS.createPaymentLink(paymentData);
+
 				var paymentUrl = createPayment.checkoutUrl;
 				var mappedResult  = _mapper.Map<CreatePaymentResultDto>(createPayment);
 				return Result<CreatePaymentResultDto>.Success(mappedResult);
@@ -89,6 +90,57 @@ namespace Services.Implementation
 			try
 			{
 				CreatePaymentResult createPayment = await payOS.createPaymentLink(paymentData);
+				//    if ((double)paymentData.orderCode < 0.0 - (Math.Pow(2.0, 53.0) - 1.0) || (double)paymentData.orderCode > Math.Pow(2.0, 53.0) - 1.0)
+				//    {
+				//        throw new ArgumentOutOfRangeException("orderCode", "orderCode is out of range.");
+				//    }
+
+				//    string signature = SignatureControl.CreateSignatureOfPaymentRequest(paymentData, CHECKSUM_KEY);
+				//    string url = "https://api-merchant.payos.vn/v2/payment-requests";
+				//    paymentData = paymentData with
+				//    {
+				//        signature = signature
+				//    };
+				//    string jsonString = JsonConvert.SerializeObject(paymentData);
+				//    HttpClient httpClient = new HttpClient();
+				//    JObject responseBodyJson = JObject.Parse(await (await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, url)
+				//    {
+				//        Content = new StringContent(jsonString, Encoding.UTF8, "application/json"),
+				//        Headers =
+				//{
+				//    { "x-client-id", CLIENT_ID },
+				//    { "x-api-key", API_KEY }
+				//}
+				//    })).Content.ReadAsStringAsync());
+				//    string code = responseBodyJson["code"]?.ToString();
+				//    string desc = responseBodyJson["desc"]?.ToString();
+				//    string data = responseBodyJson["data"]?.ToString();
+				//    if (code == null)
+				//    {
+				//        throw new PayOSError("20", "Internal Server Error.");
+				//    }
+
+				//    if (code == "00" && data != null)
+				//    {
+				//        JObject dataJson = JObject.Parse(data);
+				//        string paymentLinkResSignature = SignatureControl.CreateSignatureFromObj(dataJson, CHECKSUM_KEY);
+				//        if (paymentLinkResSignature != responseBodyJson["signature"].ToString())
+				//        {
+				//            throw new Exception("The data is unreliable because the signature of the response does not match the signature of the data");
+				//        }
+
+				//        CreatePaymentResult response = JsonConvert.DeserializeObject<CreatePaymentResult>(data);
+				//        if (response == null)
+				//        {
+				//            throw new InvalidOperationException("Error deserializing JSON response: Deserialized object is null.");
+				//        }
+				//        var paymentUrl = response.checkoutUrl;
+				//        var mappedResult = _mapper.Map<CreatePaymentResultDto>(response);
+				//        return Result<CreatePaymentResultDto>.Success(mappedResult);
+				//        //return response;
+				//    }
+
+				//    throw new PayOSError(code, desc);
 				var paymentUrl = createPayment.checkoutUrl;
 				var mappedResult = _mapper.Map<CreatePaymentResultDto>(createPayment);
 				return Result<CreatePaymentResultDto>.Success(mappedResult);
@@ -105,8 +157,45 @@ namespace Services.Implementation
 		{
 			var error = new Error();
 			PayOS payOS = new PayOS(CLIENT_ID, API_KEY, CHECKSUM_KEY);
-			PaymentLinkInformation paymentLinkInfomation = await payOS.getPaymentLinkInformation(orderCode);
-			return Result<PaymentLinkInformation>.Success(paymentLinkInfomation);
+            PaymentLinkInformation paymentLinkInfomation = await payOS.getPaymentLinkInformation(orderCode);
+            //string url = "https://api-merchant.payos.vn/v2/payment-requests/" + orderCode;
+            //HttpClient httpClient = new HttpClient();
+            //JObject responseBodyJson = JObject.Parse(await (await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, url)
+            //{
+            //    Headers =
+            //{
+            //    { "x-client-id", CLIENT_ID },
+            //    { "x-api-key", CHECKSUM_KEY }
+            //}
+            //})).Content.ReadAsStringAsync());
+            //string code = responseBodyJson["code"]?.ToString();
+            //string desc = responseBodyJson["desc"]?.ToString();
+            //string data = responseBodyJson["data"]?.ToString();
+            //if (code == null)
+            //{
+            //    throw new PayOSError("20", "Internal Server Error.");
+            //}
+
+            //if (code == "00" && data != null)
+            //{
+            //    JObject dataJson = JObject.Parse(data);
+            //    string paymentLinkResSignature = SignatureControl.CreateSignatureFromObj(dataJson, CHECKSUM_KEY);
+            //    if (paymentLinkResSignature != responseBodyJson["signature"].ToString())
+            //    {
+            //        throw new Exception("The data is unreliable because the signature of the response does not match the signature of the data");
+            //    }
+
+            //    PaymentLinkInformation response = JsonConvert.DeserializeObject<PaymentLinkInformation>(data);
+            //    if (response == null)
+            //    {
+            //        throw new InvalidOperationException("Error deserializing JSON response: Deserialized object is null.");
+            //    }
+
+            //    return Result<PaymentLinkInformation>.Success(response);
+            //}
+
+            //throw new PayOSError(code, desc);
+            return Result<PaymentLinkInformation>.Success(paymentLinkInfomation);
 		}
 		
 		public async Task<Result<PaymentLinkInformation>> CancelPaymentUrl(long orderId, string reasons) 
@@ -116,7 +205,45 @@ namespace Services.Implementation
 			{
 				PayOS payOS = new PayOS(CLIENT_ID, API_KEY, CHECKSUM_KEY);
 				var cancelResult = await payOS.cancelPaymentLink(orderId, reasons);
-				return Result<PaymentLinkInformation>.Success(cancelResult);
+                //string url = "https://api-merchant.payos.vn/v2/payment-requests/" + orderId + "/cancel";
+                //HttpClient httpClient = new HttpClient();
+                //HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url);
+                //if (reasons != null)
+                //{
+                //    request.Content = new StringContent("{\"cancellationReason\": \"" + reasons + "\"}", Encoding.UTF8, "application/json");
+                //}
+
+                //request.Headers.Add("x-client-id", CLIENT_ID);
+                //request.Headers.Add("x-api-key", API_KEY);
+                //JObject responseBodyJson = JObject.Parse(await (await httpClient.SendAsync(request)).Content.ReadAsStringAsync());
+                //string code = responseBodyJson["code"]?.ToString();
+                //string desc = responseBodyJson["desc"]?.ToString();
+                //string data = responseBodyJson["data"]?.ToString();
+                //if (code == null)
+                //{
+                //    throw new PayOSError("20", "Internal Server Error.");
+                //}
+
+                //if (code == "00" && data != null)
+                //{
+                //    JObject dataJson = JObject.Parse(data);
+                //    string paymentLinkResSignature = SignatureControl.CreateSignatureFromObj(dataJson, CHECKSUM_KEY);
+                //    if (paymentLinkResSignature != responseBodyJson["signature"].ToString())
+                //    {
+                //        throw new Exception("The data is unreliable because the signature of the response does not match the signature of the data");
+                //    }
+
+                //    PaymentLinkInformation response = JsonConvert.DeserializeObject<PaymentLinkInformation>(data);
+                //    if (response == null)
+                //    {
+                //        throw new InvalidOperationException("Error deserializing JSON response: Deserialized object is null.");
+                //    }
+
+                //    return Result<PaymentLinkInformation>.Success(response);
+                //}
+
+                //throw new PayOSError(code, desc);
+                return Result<PaymentLinkInformation>.Success(cancelResult);
 			}
 			catch(Exception ex) 
 			{

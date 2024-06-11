@@ -3,7 +3,9 @@ using Quartz;
 using Repository.Interface;
 using Services.Implementation;
 using Shared.ConfigurationBinding;
+using Shared.Enums;
 using Shared.Models;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,12 +34,12 @@ namespace Services.BackgroundServices
 		public async Task Execute(IJobExecutionContext context)
 		{
 			var getTimeToExpireLink = _appsettings.AppConstraints.LinkExpirationTimeMinute;
-			var getOrderThatExpired = (await _unitOfWork.Repositories.orderRepository
-				.GetByCondition(order => 
-					DateTime.Compare(order.CreateDate.Value.AddMinutes(getTimeToExpireLink),DateTime.Now) <= 0 && 
-					order.Status == Shared.Enums.OrderStatus.PENDING) )
-				.ToList();
-			var taskList = new List<Task>();
+			var getCurrentTime = DateTime.Now;
+            var getOrderThatExpired = await _unitOfWork.Repositories.orderRepository
+                .GetByCondition(order => DateTime.Compare(order.CreateDate.Value.AddMinutes(getTimeToExpireLink), getCurrentTime) <= 0
+				&& order.Status.Equals(OrderStatus.PENDING));//
+                                                                                                                                       
+            var taskList = new List<Task>();
 			foreach(var order in getOrderThatExpired)
 			{
 				Console.WriteLine(order.Id);

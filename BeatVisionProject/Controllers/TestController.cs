@@ -101,5 +101,10 @@ namespace BeatVisionProject.Controllers
 
 			return Ok();
 		}
+		[HttpGet("TestTimeZone")]
+		public ActionResult TestTimeZone()
+		{
+			return Ok(DateTime.Now.ToString());
+		}
 	}
 }
